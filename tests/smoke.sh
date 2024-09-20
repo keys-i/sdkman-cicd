@@ -3,6 +3,11 @@ set -e -o pipefail
 
 [[ $(type -t sdk) == function ]]
 [[ "$SDKMAN_CANDIDATES_DIR" == "$SDKMAN_DIR/candidates" ]]
+[[ "${sdkman_auto_answer:-}" == true ]]
+[[ "${sdkman_selfupdate_feature:-}" == false ]]
+[[ "${sdkman_colour_enable:-}" == false ]]
+[[ "${sdkman_checksum_enable:-}" == true ]]
+command -v shasum > /dev/null
 
 test_dir=$(mktemp -d)
 trap 'rm -rf -- "$test_dir"' EXIT

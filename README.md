@@ -18,6 +18,34 @@ cached Java and Kotlin activation through `.sdkmanrc`, and rejection of missing
 versions or a missing `.sdkmanrc`. It uses empty SDK directories to test path
 selection; it does not download or execute a real JDK or Kotlin compiler.
 
+To exercise actual SDK installation and compilation, run this block from the
+image repository after building `sdkman-ci:local`:
+
+```sh
+cache_volume=$(docker volume create)
+(
+  trap 'docker volume rm "$cache_volume"' EXIT
+  for mode in install cached; do
+    network=none
+    if [ "$mode" = install ]; then network=bridge; fi
+    docker run --rm --network "$network" \
+      --mount "type=volume,src=$cache_volume,dst=/workspace" \
+      --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
+      --env SDKMAN_CANDIDATES_DIR=/workspace/candidates \
+      --workdir /tests \
+      sdkman-ci:local bash /tests/integration.sh "$mode" || exit
+  done
+)
+```
+
+The first container installs the versions in `tests/.sdkmanrc` and compiles and
+runs Java and Kotlin programs. The second container repeats the test with the
+same candidates cache and networking disabled, using `sdk env` without attempting
+installation. Each container has fresh SDKMAN state,
+so this also checks that caching only the candidates directory is sufficient.
+The temporary volume inherits the image's writable `/workspace` ownership and
+is removed when the block finishes. Initial installation requires internet access.
+
 ## Run a project
 
 In your application's repository, create `.sdkmanrc` with exact SDKMAN candidate
@@ -38,12 +66,13 @@ Run from the application's root directory:
 ```sh
 docker run --rm \
   --mount "type=bind,src=$PWD,dst=/workspace" \
-  sdkman-ci:local bash -c 'sdk env install && sdk env && ./gradlew test'
+  sdkman-ci:local bash -c 'sdk env install && bash -c "sdk env && ./gradlew test"'
 ```
 
-Replace `./gradlew test` with your build command. Keep installation, activation,
-and the build in the same Bash process so it retains the selected SDK environment.
-The `&&` chain prevents a build from starting when installation or activation fails.
+Replace `./gradlew test` with your build command. Start a fresh Bash shell after
+installation to load newly installed candidate paths, then keep activation and
+the build in that same shell. The `&&` chain prevents a build from starting when
+installation or activation fails.
 
 The image loads SDKMAN automatically for non-interactive Bash through `BASH_ENV`
 and for the default user's interactive Bash through `.bashrc`. CI runners must
@@ -60,7 +89,7 @@ For platforms that only cache files under the project directory:
 docker run --rm \
   --mount "type=bind,src=$PWD,dst=/workspace" \
   --env SDKMAN_CANDIDATES_DIR=/workspace/.cache/sdkman/candidates \
-  sdkman-ci:local bash -c 'sdk env install && sdk env && ./gradlew test'
+  sdkman-ci:local bash -c 'sdk env install && bash -c "sdk env && ./gradlew test"'
 ```
 
 Configure your CI platform to restore `.cache/sdkman/candidates` before that
@@ -69,6 +98,10 @@ release, and a hash of `.sdkmanrc` in the cache key. Keep caches separate across
 trust boundaries, such as untrusted pull requests and release jobs. Cache only
 the candidates directory, not all of `/opt/sdkman`, which would overwrite the
 image's CLI and configuration. Exclude the cache from source control.
+
+For an entirely offline job with all required candidates already cached, use
+`sdk env && ./gradlew test`. `sdk env install` may still contact the SDKMAN API to
+validate versions even when their binaries are cached.
 
 SDKMAN's initializer currently assigns its candidate path unconditionally. The
 build applies a small checked change to honor `SDKMAN_CANDIDATES_DIR` before
@@ -79,19 +112,37 @@ The image runs as user `sdkman` (UID/GID 1000). Mounted workspaces and caches mu
 be writable by that user. If a runner requires root, configure it to run the
 container with `--user 0`; account for the resulting file ownership on the host.
 
-## Image lifecycle
+## Pull request validation
 
-This first increment provides a local Docker build. Docker Hub publishing is not configured yet.
-The Dockerfile currently fetches the stable SDKMAN installer at build time, so
-rebuilds can contain newer SDKMAN and Debian packages. Do not treat the local tag
-as a reproducible release pin.
+`.github/workflows/pr.yml` runs on pull requests and manual dispatches. It lints
+the shell scripts, builds a Linux amd64 image with Docker build checks enabled,
+runs the offline smoke test, and tests real SDK installation and offline cache
+reuse. Versions live in `tests/.sdkmanrc`, not in the workflow.
 
-Next increments, each with a separate review and commit checkpoint:
+The workflow uses read-only repository permissions, disables persisted checkout
+credentials, and has no registry login or publishing step. Superseded runs are
+cancelled, and job and integration-test timeouts bound stalled downloads. Docker
+layers use the `sdkman-ci-pr-amd64` cache scope; release workflows must use a
+separate scope. Candidate downloads start from an empty volume for every job.
 
-1. PR builds and validation, including real SDK installation, build caching,
-   minimal workflow permissions, and supply-chain checks
-2. Release-only Docker Hub publishing with release tags, multi-platform testing,
-   provenance, an SBOM, and documented credentials and release procedures
+No Docker Hub credentials are needed for PR validation. To require it before
+merging, configure the repository's branch rules to require `Build and test (amd64)`.
+ShellCheck is expected on the GitHub-hosted Ubuntu runner.
 
-Reference: [SDKMAN installation and CI mode](https://sdkman.io/install/),
-[project environments and configuration](https://sdkman.io/usage/)
+## Gradual modernization: 2024 to 2026
+
+The current checkpoint is a 2024-era baseline: Debian 12, Checkout v4, Buildx v3,
+Build/Push v6, and Java/Kotlin examples from 2024. Non-interactive SDKMAN settings
+are configured explicitly. This is a progression of tooling choices, not a
+frozen historical build: action major tags can move, and a fresh image build
+fetches the stable SDKMAN installer and current Debian packages.
+
+The next checkpoints will add release-only Docker Hub publishing, followed by
+2025/2026 hardening: verified immutable dependency references, automated update
+proposals, multi-platform validation, provenance, and an SBOM. Each checkpoint
+has its own review and commit. Docker Hub publishing is not configured yet.
+
+Reference: [SDKMAN installation](https://sdkman.io/install/),
+[project environments and configuration](https://sdkman.io/usage/),
+[Docker build checks](https://docs.docker.com/build/checks/), and
+[Docker build caching](https://docs.docker.com/build/ci/github-actions/cache/)

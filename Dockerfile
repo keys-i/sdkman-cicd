@@ -1,4 +1,4 @@
-FROM debian:trixie-slim
+FROM debian:bookworm-slim
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -7,6 +7,7 @@ RUN apt-get update \
         bash \
         ca-certificates \
         curl \
+        libdigest-sha-perl \
         unzip \
         zip \
     && rm -rf /var/lib/apt/lists/* \
@@ -23,7 +24,7 @@ WORKDIR /workspace
 RUN curl --fail --show-error --silent --location \
         --proto '=https' --proto-redir '=https' \
         --connect-timeout 10 --max-time 120 \
-        'https://get.sdkman.io?ci=true&rcupdate=false' \
+        'https://get.sdkman.io?rcupdate=false' \
         --output /tmp/install-sdkman.sh \
     && bash /tmp/install-sdkman.sh \
     && bash /tmp/configure-sdkman.sh \

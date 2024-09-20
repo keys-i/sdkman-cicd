@@ -1,0 +1,64 @@
+name: Validate CI image
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-image-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build and test (amd64)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Lint shell scripts
+        run: shellcheck docker/configure-sdkman.sh tests/smoke.sh tests/integration.sh
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and load image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          tags: sdkman-ci:test
+          load: true
+          push: false
+          pull: true
+          build-args: BUILDKIT_DOCKERFILE_CHECK=error=true
+          cache-from: type=gha,scope=sdkman-ci-pr-amd64
+          cache-to: type=gha,scope=sdkman-ci-pr-amd64,mode=max
+
+      - name: Check the CLI and candidate cache configuration
+        run: |
+          docker run --rm --network none \
+            --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
+            sdkman-ci:test bash /tests/smoke.sh
+
+      - name: Compile with fresh SDKs and reuse them offline
+        timeout-minutes: 10
+        run: |
+          cache_volume=$(docker volume create)
+          trap 'docker volume rm "$cache_volume"' EXIT
+          for mode in install cached; do
+            network=none
+            if [[ "$mode" == install ]]; then network=bridge; fi
+            docker run --rm --network "$network" \
+              --mount "type=volume,src=$cache_volume,dst=/workspace" \
+              --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
+              --env SDKMAN_CANDIDATES_DIR=/workspace/candidates \
+              --workdir /tests \
+              sdkman-ci:test bash /tests/integration.sh "$mode"
+          done

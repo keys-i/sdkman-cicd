@@ -13,5 +13,12 @@ if ! grep -Fxq "$new_assignment" "$sdkman_init.tmp"; then
 fi
 mv "$sdkman_init.tmp" "$sdkman_init"
 
-# CI jobs select their environment explicitly and need no startup network probe
-printf '\nsdkman_auto_complete=false\nsdkman_healthcheck_enable=false\n' >> "$SDKMAN_DIR/etc/config"
+# Configure CI without relying on the installer's newer CI mode
+printf '\n%s\n' \
+    sdkman_auto_answer=true \
+    sdkman_colour_enable=false \
+    sdkman_selfupdate_feature=false \
+    sdkman_checksum_enable=true \
+    sdkman_auto_complete=false \
+    sdkman_auto_env=false \
+    sdkman_healthcheck_enable=false >> "$SDKMAN_DIR/etc/config"
