@@ -129,6 +129,30 @@ No Docker Hub credentials are needed for PR validation. To require it before
 merging, configure the repository's branch rules to require `Build and test (amd64)`.
 ShellCheck is expected on the GitHub-hosted Ubuntu runner.
 
+## Release tag validation
+
+`.github/workflows/release.yml` validates the tag when a release is published,
+including a prerelease. This checkpoint validates only; image publishing will
+be added next. The workflow needs no Docker Hub credentials.
+
+Release tags must already match the
+[Docker tag grammar](https://pkg.go.dev/github.com/distribution/reference#pkg-overview):
+1-128 ASCII letters, digits, underscores, dots, or hyphens, starting with a letter,
+digit, or underscore. Tags such as `v1.2.3`, `v1.2.3-rc.1`, and `2024.09.23` are
+accepted. Tags containing spaces, slashes, or `+` are rejected. The eventual image
+tag will preserve the complete release tag, including any leading `v`.
+
+Validate a proposed tag locally and run the regression checks without Docker:
+
+```sh
+bash scripts/validate-release-tag.sh 'v1.2.3'
+bash tests/release-tag.sh
+```
+
+PR validation also runs these checks. Release tag values are passed to the
+validator as quoted arguments through an environment variable, so they are
+handled as data rather than shell code.
+
 ## Gradual modernization: 2024 to 2026
 
 The current checkpoint is a 2024-era baseline: Debian 12, Checkout v4, Buildx v3,
