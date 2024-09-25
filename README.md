@@ -122,18 +122,29 @@ reuse. Versions live in `tests/.sdkmanrc`, not in the workflow.
 The workflow uses read-only repository permissions, disables persisted checkout
 credentials, and has no registry login or publishing step. Superseded runs are
 cancelled, and job and integration-test timeouts bound stalled downloads. Docker
-layers use the `sdkman-ci-pr-amd64` cache scope; release workflows must use a
-separate scope. Candidate downloads start from an empty volume for every job.
+layers use the `sdkman-ci-pr-amd64` cache scope, separate from release builds.
+Candidate downloads start from an empty volume for every job.
 
 No Docker Hub credentials are needed for PR validation. To require it before
 merging, configure the repository's branch rules to require `Build and test (amd64)`.
 ShellCheck is expected on the GitHub-hosted Ubuntu runner.
 
-## Release tag validation
+## Release validation
 
-`.github/workflows/release.yml` validates the tag when a release is published,
-including a prerelease. This checkpoint validates only; image publishing will
-be added next. The workflow needs no Docker Hub credentials.
+`.github/workflows/release.yml` runs when a release is published, including a
+prerelease. It validates the tag before starting the image build. Both jobs check
+out the commit identified by the release event, so validation and building use
+the same source even if the tag later moves.
+
+The build job lints the scripts, runs the tag regression checks, and builds a
+Linux amd64 image named `sdkman-ci:<release-tag>` with Docker build checks enabled.
+It then runs the same offline smoke test, fresh SDK installation, compilation,
+and offline candidate-cache reuse checks as PR validation. Release builds use
+the separate `sdkman-ci-release-amd64` Docker cache scope.
+
+The workflow has read-only repository permissions, bounded execution times, and
+no registry login or publishing step. It needs no Docker Hub credentials. The
+tested image stays on the runner for this job; image publishing will be added next.
 
 Release tags must already match the
 [Docker tag grammar](https://pkg.go.dev/github.com/distribution/reference#pkg-overview):
