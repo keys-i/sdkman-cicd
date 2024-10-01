@@ -129,7 +129,7 @@ No Docker Hub credentials are needed for PR validation. To require it before
 merging, configure the repository's branch rules to require `Build and test (amd64)`.
 ShellCheck is expected on the GitHub-hosted Ubuntu runner.
 
-## Release validation
+## Release publishing
 
 `.github/workflows/release.yml` runs when a release is published, including a
 prerelease. It validates the tag before starting the image build. Both jobs check
@@ -142,15 +142,41 @@ It then runs the same offline smoke test, fresh SDK installation, compilation,
 and offline candidate-cache reuse checks as PR validation. Release builds use
 the separate `sdkman-ci-release-amd64` Docker cache scope.
 
-The workflow has read-only repository permissions, bounded execution times, and
-no registry login or publishing step. It needs no Docker Hub credentials. The
-tested image stays on the runner for this job; image publishing will be added next.
+After all checks succeed, the workflow tags the tested image as
+`docker.io/<namespace>/<repository>:<release-tag>`, logs in to Docker Hub, and
+pushes that image. Docker validates the target image reference before login.
+The job keeps read-only GitHub repository permissions and bounded execution
+times. Docker credentials are supplied only to the configuration check and login
+step; the login action is configured to log out during cleanup.
+
+Before publishing a release, create a
+[public Docker Hub repository](https://docs.docker.com/docker-hub/repos/create/)
+and configure these GitHub Actions repository settings:
+
+| Name | Kind | Value |
+| --- | --- | --- |
+| `DOCKERHUB_USERNAME` | Variable | Docker Hub account with write access to the target repository |
+| `DOCKERHUB_REPOSITORY` | Variable | Full `namespace/repository`, such as `your-org/sdkman-ci`, without a registry hostname or tag |
+| `DOCKERHUB_TOKEN` | Secret | A personal access token for that account with Read and Write permissions |
+
+The namespace can belong to an organization; the username must identify the
+account that owns the token. Create a
+[Docker Hub access token](https://docs.docker.com/security/access-tokens/personal-access-tokens/)
+with the permissions needed to push, and store it as the repository secret.
+Missing settings fail the release job before the image build starts. PR builds
+continue to run without these settings or credentials.
+
+Publish a release from a commit containing this workflow to trigger it. The
+resulting image supports Linux amd64 and uses the complete release tag. For
+example, release `v1.2.3` publishes `docker.io/your-org/sdkman-ci:v1.2.3` when
+`DOCKERHUB_REPOSITORY` is `your-org/sdkman-ci`. Use that image reference in consuming
+CI jobs, with the application's SDK versions still selected by its `.sdkmanrc`.
 
 Release tags must already match the
 [Docker tag grammar](https://pkg.go.dev/github.com/distribution/reference#pkg-overview):
 1-128 ASCII letters, digits, underscores, dots, or hyphens, starting with a letter,
 digit, or underscore. Tags such as `v1.2.3`, `v1.2.3-rc.1`, and `2024.09.23` are
-accepted. Tags containing spaces, slashes, or `+` are rejected. The eventual image
+accepted. Tags containing spaces, slashes, or `+` are rejected. The published image
 tag will preserve the complete release tag, including any leading `v`.
 
 Validate a proposed tag locally and run the regression checks without Docker:
@@ -172,10 +198,11 @@ are configured explicitly. This is a progression of tooling choices, not a
 frozen historical build: action major tags can move, and a fresh image build
 fetches the stable SDKMAN installer and current Debian packages.
 
-The next checkpoints will add release-only Docker Hub publishing, followed by
+The next checkpoints will strengthen release handling, then progress through
 2025/2026 hardening: verified immutable dependency references, automated update
 proposals, multi-platform validation, provenance, and an SBOM. Each checkpoint
-has its own review and commit. Docker Hub publishing is not configured yet.
+has its own review and commit. Release publishing requires the repository
+variables and secret described above.
 
 Reference: [SDKMAN installation](https://sdkman.io/install/),
 [project environments and configuration](https://sdkman.io/usage/),

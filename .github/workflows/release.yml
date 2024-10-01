@@ -1,4 +1,4 @@
-name: Validate release image
+name: Publish release image
 
 on:
   release:
@@ -25,18 +25,29 @@ jobs:
         run: bash scripts/validate-release-tag.sh "$RELEASE_TAG"
 
   build-test:
-    name: Build and test release (amd64)
+    name: Build, test, and publish release (amd64)
     needs: validate-tag
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       TEST_IMAGE: sdkman-ci:${{ github.event.release.tag_name }}
+      PUBLISH_IMAGE: docker.io/${{ vars.DOCKERHUB_REPOSITORY }}:${{ github.event.release.tag_name }}
     steps:
       - name: Check out release source
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+
+      - name: Check Docker Hub configuration
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_REPOSITORY: ${{ vars.DOCKERHUB_REPOSITORY }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          : "${DOCKERHUB_USERNAME:?Set the DOCKERHUB_USERNAME repository variable}"
+          : "${DOCKERHUB_REPOSITORY:?Set the DOCKERHUB_REPOSITORY repository variable to namespace/repository}"
+          : "${DOCKERHUB_TOKEN:?Set the DOCKERHUB_TOKEN repository secret}"
 
       - name: Lint shell scripts
         run: shellcheck docker/*.sh scripts/*.sh tests/*.sh
@@ -81,3 +92,19 @@ jobs:
               --workdir /tests \
               "$TEST_IMAGE" bash /tests/integration.sh "$mode"
           done
+
+      - name: Tag the tested image for Docker Hub
+        run: docker image tag "$TEST_IMAGE" "$PUBLISH_IMAGE"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        timeout-minutes: 2
+        with:
+          registry: docker.io
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          logout: true
+
+      - name: Push the tested release image
+        timeout-minutes: 5
+        run: docker image push "$PUBLISH_IMAGE"
