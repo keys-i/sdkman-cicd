@@ -172,6 +172,24 @@ example, release `v1.2.3` publishes `docker.io/your-org/sdkman-ci:v1.2.3` when
 `DOCKERHUB_REPOSITORY` is `your-org/sdkman-ci`. Use that image reference in consuming
 CI jobs, with the application's SDK versions still selected by its `.sdkmanrc`.
 
+The release job summary also includes a copyable digest reference in the form
+`docker.io/<namespace>/<repository>@sha256:<digest>`. Use it to pin a consuming
+CI job to that exact image. The digest comes from this job's
+[Docker push output](https://docs.docker.com/reference/cli/docker/image/push/),
+so moving the release tag later does not change the recorded reference.
+Pinning the base image still leaves SDK versions controlled by `.sdkmanrc`.
+
+The publishing script streams push output into the job log and only writes the
+summary after a successful push with exactly one valid digest. If reporting fails, the
+job fails even though the image may already be in Docker Hub; inspect the push
+log before retrying. Run its regression checks without Docker or credentials:
+
+```sh
+bash tests/publish-image.sh
+```
+
+Both workflows run these checks before building the image.
+
 Release tags must already match the
 [Docker tag grammar](https://pkg.go.dev/github.com/distribution/reference#pkg-overview):
 1-128 ASCII letters, digits, underscores, dots, or hyphens, starting with a letter,

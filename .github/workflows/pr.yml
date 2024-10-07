@@ -28,6 +28,9 @@ jobs:
       - name: Test release tag validation
         run: bash tests/release-tag.sh
 
+      - name: Test release publishing without a registry
+        run: bash tests/publish-image.sh
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 

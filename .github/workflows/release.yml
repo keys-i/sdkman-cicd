@@ -55,6 +55,9 @@ jobs:
       - name: Test release tag validation
         run: bash tests/release-tag.sh
 
+      - name: Test release publishing without a registry
+        run: bash tests/publish-image.sh
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -107,4 +110,4 @@ jobs:
 
       - name: Push the tested release image
         timeout-minutes: 5
-        run: docker image push "$PUBLISH_IMAGE"
+        run: bash scripts/publish-image.sh
