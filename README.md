@@ -136,6 +136,11 @@ prerelease. It validates the tag before starting the image build. Both jobs chec
 out the commit identified by the release event, so validation and building use
 the same source even if the tag later moves.
 
+Within this repository, release runs for the same tag share a concurrency group.
+An active run is allowed to finish (`cancel-in-progress: false`), so a newer run
+does not interrupt its push. The group retains at most one pending run, which a
+newer pending run can replace. Group names are case-insensitive.
+
 The build job lints the scripts, runs the tag regression checks, and builds a
 Linux amd64 image named `sdkman-ci:<release-tag>` with Docker build checks enabled.
 It then runs the same offline smoke test, fresh SDK installation, compilation,
