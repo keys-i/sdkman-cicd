@@ -177,6 +177,26 @@ example, release `v1.2.3` publishes `docker.io/your-org/sdkman-ci:v1.2.3` when
 `DOCKERHUB_REPOSITORY` is `your-org/sdkman-ci`. Use that image reference in consuming
 CI jobs, with the application's SDK versions still selected by its `.sdkmanrc`.
 
+The release workflow supplies these image labels through the existing
+[Docker build action](https://docs.docker.com/build/ci/github-actions/manage-tags-labels/):
+
+| Label | Value |
+| --- | --- |
+| `org.opencontainers.image.version` | Complete release tag, including any leading `v` |
+| `org.opencontainers.image.revision` | Full source commit SHA used by checkout |
+| `org.opencontainers.image.source` | URL of the repository that built the image |
+
+After pulling a release image, inspect its labels locally (substitute your image
+reference for the example):
+
+```sh
+docker image inspect --format '{{json .Config.Labels}}' \
+  docker.io/your-org/sdkman-ci:v1.2.3
+```
+
+These release labels are supplied by the workflow. The local build command above
+requires no release metadata arguments.
+
 The release job summary also includes a copyable digest reference in the form
 `docker.io/<namespace>/<repository>@sha256:<digest>`. Use it to pin a consuming
 CI job to that exact image. The digest comes from this job's

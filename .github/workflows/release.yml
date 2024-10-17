@@ -71,6 +71,10 @@ jobs:
           context: .
           platforms: linux/amd64
           tags: ${{ env.TEST_IMAGE }}
+          labels: |
+            org.opencontainers.image.version=${{ github.event.release.tag_name }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           load: true
           push: false
           pull: true
