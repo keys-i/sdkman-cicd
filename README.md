@@ -112,6 +112,34 @@ The image runs as user `sdkman` (UID/GID 1000). Mounted workspaces and caches mu
 be writable by that user. If a runner requires root, configure it to run the
 container with `--user 0`; account for the resulting file ownership on the host.
 
+## GitHub Actions application example
+
+Copy [the example workflow](examples/github-actions.yml) to
+`.github/workflows/ci.yml` in your application's repository. It builds pull
+requests, pushes to `main`, and manual runs. Change `main` if your default branch
+has another name, and replace `./gradlew test` with your build command if needed.
+Keep `.sdkmanrc` and your build wrapper at the repository root.
+
+Set the repository variable `SDKMAN_CI_IMAGE` to the public image's digest
+reference from its release job summary. The image must be published before the
+job can start. Updating Java or another SDK then requires changing only
+`.sdkmanrc`; keep the image reference fixed until you want to update the base
+image itself.
+
+The example caches only `.cache/sdkman/candidates`. Its key includes the runner
+OS and architecture, event type, image reference, and `.sdkmanrc` hash. There are
+no fallback restore keys. An exact hit skips installation; otherwise
+`sdk env install` installs the declared candidates. The build runs in a fresh
+Bash step with `sdk env` to activate them, and the cache action saves a new cache
+only after a successful job. A missing or empty `.sdkmanrc` fails before cache
+lookup. Add `.cache/sdkman/` to the application's `.gitignore`.
+
+The container uses root to write GitHub's mounted workspace and action
+directories. The example is intended for the hosted Linux runner; caches and
+build files may be root-owned. Keep the `sdkman-app-v1-` cache prefix separate
+from privileged release workflows. For a damaged exact-match cache, delete that
+cache or bump the prefix to `sdkman-app-v2-` before rerunning.
+
 ## Pull request validation
 
 `.github/workflows/pr.yml` runs on pull requests and manual dispatches. It lints
