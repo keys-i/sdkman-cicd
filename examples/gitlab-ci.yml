@@ -1,0 +1,32 @@
+sdkman-test:
+  stage: test
+  tags:
+    - saas-linux-small-amd64
+  image:
+    # Replace this example with your published image's digest reference
+    name: docker.io/your-org/sdkman-ci:v1.2.3
+    docker:
+      # Allow writes to the runner's checkout and cache directories
+      user: "0"
+  timeout: 30m
+  interruptible: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  variables:
+    SDKMAN_CANDIDATES_DIR: "$CI_PROJECT_DIR/.cache/sdkman/candidates"
+  cache:
+    key:
+      prefix: sdkman-app-v1-linux-amd64-$CI_PIPELINE_SOURCE
+      files:
+        - .sdkmanrc
+        - .gitlab-ci.yml
+    paths:
+      - .cache/sdkman/candidates/
+    policy: pull-push
+    when: on_success
+  script:
+    - test -s .sdkmanrc
+    - bash -e -o pipefail -c 'sdk env install'
+    - bash -e -o pipefail -c 'sdk env && ./gradlew test'

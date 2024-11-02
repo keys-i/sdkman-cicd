@@ -140,6 +140,35 @@ build files may be root-owned. Keep the `sdkman-app-v1-` cache prefix separate
 from privileged release workflows. For a damaged exact-match cache, delete that
 cache or bump the prefix to `sdkman-app-v2-` before rerunning.
 
+## GitLab CI application example
+
+Copy [the GitLab example](examples/gitlab-ci.yml) to `.gitlab-ci.yml` in your
+application's repository. Replace `image.name` with your published image's digest
+reference from its release summary. Keep the reference directly in this file so
+image changes also change the cache key. Keep `.sdkmanrc` and your build wrapper
+at the repository root, and replace `./gradlew test` if you use another build
+command. SDK version changes require editing only `.sdkmanrc`.
+
+The job runs for merge requests, pushes to the default branch, and pipelines
+started from the GitLab UI. It selects a
+[hosted Linux amd64 runner](https://docs.gitlab.com/ci/runners/hosted_runners/linux/)
+and uses `image.docker.user: "0"` to write mounted directories. For your own
+runner, select its tag and use a Linux amd64 Docker executor supporting
+[the image user option](https://docs.gitlab.com/ci/yaml/#imagedocker).
+
+GitLab caches `.cache/sdkman/candidates/` under the project directory. The key
+combines a Linux amd64 and pipeline-source prefix with hashes of `.sdkmanrc` and
+`.gitlab-ci.yml`. Any change to either file invalidates it. The job restores the
+cache before running its script and saves it only on success. Keep GitLab's
+[separate caches for protected branches](https://docs.gitlab.com/ci/caching/#use-the-same-cache-for-all-branches)
+enabled, and use a different prefix for privileged release jobs. Add
+`.cache/sdkman/` to the application's `.gitignore`.
+
+A missing or empty `.sdkmanrc` stops the job before SDK installation. Each run
+calls `sdk env install`, reusing cached binaries when available; this still
+needs access to the SDKMAN API. The build starts in a fresh Bash process and
+activates the declared SDKs with `sdk env` before running the wrapper.
+
 ## Pull request validation
 
 `.github/workflows/pr.yml` runs on pull requests and manual dispatches. It lints
