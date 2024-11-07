@@ -13,6 +13,15 @@ docker run --rm --network none \
   sdkman-ci:local bash /tests/smoke.sh
 ```
 
+The installer download uses curl's built-in retries for transient failures:
+up to three retries with backoff and a 180-second retry window. Each attempt
+retains a 10-second connection timeout and a 120-second transfer timeout. An
+attempt already in progress can finish after the retry window expires; the
+window is not a strict overall deadline. Permanent HTTP errors such as 404 fail
+without retrying, and a failed download stops the build before the installer
+runs. These settings apply to the installer script download; candidate downloads
+are managed by SDKMAN. See [curl's retry options](https://curl.se/docs/manpage.html#--retry).
+
 The offline smoke test checks Bash initialization, a custom candidate directory,
 cached Java and Kotlin activation through `.sdkmanrc`, and rejection of missing
 versions or a missing `.sdkmanrc`. It uses empty SDK directories to test path
