@@ -22,14 +22,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Lint shell scripts
-        run: shellcheck docker/*.sh scripts/*.sh tests/*.sh
-
-      - name: Test release tag validation
-        run: bash tests/release-tag.sh
-
-      - name: Test release publishing without a registry
-        run: bash tests/publish-image.sh
+      - name: Run offline checks
+        run: bash scripts/check.sh
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

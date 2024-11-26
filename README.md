@@ -68,10 +68,7 @@ an exact cache hit; GitLab runs `sdk env install` and reuses cached binaries.
 From this repository, run the offline checks with Bash and ShellCheck:
 
 ```sh
-shellcheck docker/*.sh scripts/*.sh tests/*.sh
-bash tests/configure-sdkman.sh
-bash tests/release-tag.sh
-bash tests/publish-image.sh
+bash scripts/check.sh
 ```
 
 After building the local image, check initialization and cached SDK paths:
