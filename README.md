@@ -71,17 +71,16 @@ From this repository, run the offline checks with Bash and ShellCheck:
 bash scripts/check.sh
 ```
 
-After building the local image, check initialization and cached SDK paths:
+After building the local image, run the image tests (SDK installation needs internet):
 
 ```sh
-docker run --rm --network none \
-  --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
-  sdkman-ci:local bash /tests/smoke.sh
+bash scripts/check-image.sh sdkman-ci:local
 ```
 
-The smoke test uses simulated SDK directories. [PR validation](.github/workflows/pr.yml)
-also runs [integration tests](tests/integration.sh) that install Java and Kotlin,
-compile programs, and reuse the candidate cache offline. PRs need no registry
+The command runs the smoke test and [integration tests](tests/integration.sh),
+then removes its temporary cache volume. It installs Java and Kotlin, compiles
+programs, and tests cache reuse offline. [PR validation](.github/workflows/pr.yml)
+and releases use the same command. PRs need no registry
 credentials. To require PR validation, select `Build and test (amd64)` in branch rules.
 
 ## Publishing releases

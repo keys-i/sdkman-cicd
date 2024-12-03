@@ -76,27 +76,9 @@ jobs:
           cache-from: type=gha,scope=sdkman-ci-release-amd64
           cache-to: type=gha,scope=sdkman-ci-release-amd64,mode=max
 
-      - name: Check the CLI and candidate cache configuration
-        run: |
-          docker run --rm --network none \
-            --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
-            "$TEST_IMAGE" bash /tests/smoke.sh
-
-      - name: Compile with fresh SDKs and reuse them offline
+      - name: Check image and candidate cache
         timeout-minutes: 10
-        run: |
-          cache_volume=$(docker volume create)
-          trap 'docker volume rm "$cache_volume"' EXIT
-          for mode in install cached; do
-            network=none
-            if [[ "$mode" == install ]]; then network=bridge; fi
-            docker run --rm --network "$network" \
-              --mount "type=volume,src=$cache_volume,dst=/workspace" \
-              --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
-              --env SDKMAN_CANDIDATES_DIR=/workspace/candidates \
-              --workdir /tests \
-              "$TEST_IMAGE" bash /tests/integration.sh "$mode"
-          done
+        run: bash scripts/check-image.sh "$TEST_IMAGE"
 
       - name: Tag the tested image for Docker Hub
         run: docker image tag "$TEST_IMAGE" "$PUBLISH_IMAGE"
