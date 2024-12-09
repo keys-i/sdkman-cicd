@@ -90,11 +90,11 @@ Create a public Docker Hub repository and configure these GitHub repository sett
 | Name | Type | Value |
 | --- | --- | --- |
 | `DOCKERHUB_USERNAME` | Variable | Account with write access to the repository |
-| `DOCKERHUB_REPOSITORY` | Variable | `namespace/repository`, without a hostname or tag |
+| `DOCKERHUB_REPOSITORY` | Variable | Lowercase `namespace/repository`, without a hostname, tag, or digest |
 | `DOCKERHUB_TOKEN` | Secret | That account's personal access token with Read and Write permissions |
 
 Publishing a release, including a prerelease, triggers the
-[release workflow](.github/workflows/release.yml). It validates the tag, builds
+[release workflow](.github/workflows/release.yml). It validates the tag and destination format, builds
 and tests the image, then pushes `docker.io/<namespace>/<repository>:<release-tag>`.
 The full tag is preserved. Tags such as `v1.2.3` are valid; spaces, slashes, and
 `+` are rejected by the [tag validator](scripts/validate-release-tag.sh).

@@ -52,6 +52,7 @@ jobs:
           : "${DOCKERHUB_USERNAME:?Set the DOCKERHUB_USERNAME repository variable}"
           : "${DOCKERHUB_REPOSITORY:?Set the DOCKERHUB_REPOSITORY repository variable to namespace/repository}"
           : "${DOCKERHUB_TOKEN:?Set the DOCKERHUB_TOKEN repository secret}"
+          bash scripts/validate-dockerhub-repository.sh "$DOCKERHUB_REPOSITORY"
 
       - name: Run offline checks
         run: bash scripts/check.sh
