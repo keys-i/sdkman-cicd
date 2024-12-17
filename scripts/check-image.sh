@@ -10,7 +10,7 @@ cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
 
 docker run --rm --network none \
     --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
-    "$image" bash /tests/smoke.sh
+    --pull=never "$image" bash /tests/smoke.sh
 
 cache_volume=$(docker volume create)
 cleanup() {
@@ -28,5 +28,5 @@ for mode in install cached; do
         --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
         --env SDKMAN_CANDIDATES_DIR=/workspace/candidates \
         --workdir /tests \
-        "$image" bash /tests/integration.sh "$mode"
+        --pull=never "$image" bash /tests/integration.sh "$mode"
 done

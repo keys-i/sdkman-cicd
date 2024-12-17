@@ -18,6 +18,7 @@ docker() {
             network=none
             if [[ "$step" == /tests/smoke.sh ]]; then
                 step=smoke
+                [[ "${*: -4:1}" == --pull=never ]] || return 99
                 [[ "${*: -3:1}" == sdkman-ci:check ]] || return 99
                 [[ "$6" == "type=bind,src=$IMAGE_CHECK_TESTS,dst=/tests,readonly" ]] || return 99
             else
@@ -26,8 +27,9 @@ docker() {
                 [[ "$6" == type=volume,src=check-volume,dst=/workspace ]] || return 99
                 [[ "$8" == "type=bind,src=$IMAGE_CHECK_TESTS,dst=/tests,readonly" ]] || return 99
                 [[ "${10}" == SDKMAN_CANDIDATES_DIR=/workspace/candidates ]] || return 99
-                [[ "${12}" == /tests && "${13}" == sdkman-ci:check ]] || return 99
-                [[ "${14}" == bash && "${15}" == /tests/integration.sh ]] || return 99
+                [[ "${12}" == /tests && "${13}" == --pull=never ]] || return 99
+                [[ "${14}" == sdkman-ci:check ]] || return 99
+                [[ "${15}" == bash && "${16}" == /tests/integration.sh ]] || return 99
             fi
             [[ "$3" == --network && "$4" == "$network" ]] || return 99
             ;;
