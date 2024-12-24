@@ -77,7 +77,7 @@ Build the image locally first; tests never pull it. SDK installation needs inter
 bash scripts/check-image.sh sdkman-ci:local
 ```
 
-The command runs the smoke test and [integration tests](tests/integration.sh),
+The command smoke-tests the default and root users, runs [integration tests](tests/integration.sh),
 then removes its temporary cache volume. It installs Java and Kotlin, compiles
 programs, and tests cache reuse offline. [PR validation](.github/workflows/pr.yml)
 and releases use the same command. PRs need no registry

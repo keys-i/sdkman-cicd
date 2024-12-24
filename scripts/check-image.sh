@@ -12,6 +12,10 @@ docker run --rm --network none \
     --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
     --pull=never "$image" bash /tests/smoke.sh
 
+docker run --rm --network none \
+    --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
+    --user 0 --pull=never "$image" bash /tests/smoke.sh
+
 cache_volume=$(docker volume create)
 cleanup() {
     local status=$?

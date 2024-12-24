@@ -18,6 +18,12 @@ docker() {
             network=none
             if [[ "$step" == /tests/smoke.sh ]]; then
                 step=smoke
+                if [[ $# == 12 ]]; then
+                    [[ "$7" == --user && "$8" == 0 ]] || return 99
+                    step=root-smoke
+                else
+                    [[ $# == 10 ]] || return 99
+                fi
                 [[ "${*: -4:1}" == --pull=never ]] || return 99
                 [[ "${*: -3:1}" == sdkman-ci:check ]] || return 99
                 [[ "$6" == "type=bind,src=$IMAGE_CHECK_TESTS,dst=/tests,readonly" ]] || return 99
@@ -51,17 +57,18 @@ export -f docker
 
 # Exercise invocation outside the repository as well as failure cleanup
 cd "$test_dir"
-for IMAGE_CHECK_FAIL in '' smoke create install cached cleanup; do
+for IMAGE_CHECK_FAIL in '' smoke root-smoke create install cached cleanup; do
     : > "$IMAGE_CHECK_CALLS"
     status=0
     bash "$project_dir/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1 || status=$?
     case "$IMAGE_CHECK_FAIL" in
-        '') expected_status=0; expected=$'smoke\ncreate\ninstall\ncached\ncleanup' ;;
+        '') expected_status=0; expected=$'smoke\nroot-smoke\ncreate\ninstall\ncached\ncleanup' ;;
         smoke) expected_status=37; expected=smoke ;;
-        create) expected_status=37; expected=$'smoke\ncreate' ;;
-        install) expected_status=37; expected=$'smoke\ncreate\ninstall\ncleanup' ;;
-        cached) expected_status=37; expected=$'smoke\ncreate\ninstall\ncached\ncleanup' ;;
-        cleanup) expected_status=1; expected=$'smoke\ncreate\ninstall\ncached\ncleanup' ;;
+        root-smoke) expected_status=37; expected=$'smoke\nroot-smoke' ;;
+        create) expected_status=37; expected=$'smoke\nroot-smoke\ncreate' ;;
+        install) expected_status=37; expected=$'smoke\nroot-smoke\ncreate\ninstall\ncleanup' ;;
+        cached) expected_status=37; expected=$'smoke\nroot-smoke\ncreate\ninstall\ncached\ncleanup' ;;
+        cleanup) expected_status=1; expected=$'smoke\nroot-smoke\ncreate\ninstall\ncached\ncleanup' ;;
     esac
     [[ "$status" == "$expected_status" ]]
     [[ $(cat "$IMAGE_CHECK_CALLS") == "$expected" ]]
