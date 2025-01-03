@@ -4,6 +4,7 @@ export LC_ALL=C
 
 : "${PUBLISH_IMAGE:?PUBLISH_IMAGE must name the tested release image}"
 : "${GITHUB_STEP_SUMMARY:?GITHUB_STEP_SUMMARY must name the job summary file}"
+: >> "$GITHUB_STEP_SUMMARY"
 
 push_log=$(mktemp)
 trap 'rm -f -- "$push_log"' EXIT
