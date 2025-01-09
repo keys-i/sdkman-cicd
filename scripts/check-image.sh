@@ -26,11 +26,15 @@ trap cleanup EXIT
 
 for mode in install cached; do
     network=none
-    if [[ "$mode" == install ]]; then network=bridge; fi
+    cache_mount=/restored-workspace
+    if [[ "$mode" == install ]]; then
+        network=bridge
+        cache_mount=/workspace
+    fi
     docker run --rm --network "$network" \
-        --mount "type=volume,src=$cache_volume,dst=/workspace" \
+        --mount "type=volume,src=$cache_volume,dst=$cache_mount" \
         --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
-        --env SDKMAN_CANDIDATES_DIR=/workspace/candidates \
+        --env "SDKMAN_CANDIDATES_DIR=$cache_mount/candidates" \
         --workdir /tests \
         --pull=never "$image" bash /tests/integration.sh "$mode"
 done

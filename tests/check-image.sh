@@ -29,10 +29,15 @@ docker() {
                 [[ "$6" == "type=bind,src=$IMAGE_CHECK_TESTS,dst=/tests,readonly" ]] || return 99
             else
                 [[ "$step" == install || "$step" == cached ]] || return 99
-                if [[ "$step" == install ]]; then network=bridge; fi
-                [[ "$6" == type=volume,src=check-volume,dst=/workspace ]] || return 99
+                if [[ "$step" == install ]]; then
+                    network=bridge
+                    [[ "$6" == type=volume,src=check-volume,dst=/workspace ]] || return 99
+                    [[ "${10}" == SDKMAN_CANDIDATES_DIR=/workspace/candidates ]] || return 99
+                else
+                    [[ "$6" == type=volume,src=check-volume,dst=/restored-workspace ]] || return 99
+                    [[ "${10}" == SDKMAN_CANDIDATES_DIR=/restored-workspace/candidates ]] || return 99
+                fi
                 [[ "$8" == "type=bind,src=$IMAGE_CHECK_TESTS,dst=/tests,readonly" ]] || return 99
-                [[ "${10}" == SDKMAN_CANDIDATES_DIR=/workspace/candidates ]] || return 99
                 [[ "${12}" == /tests && "${13}" == --pull=never ]] || return 99
                 [[ "${14}" == sdkman-ci:check ]] || return 99
                 [[ "${15}" == bash && "${16}" == /tests/integration.sh ]] || return 99
