@@ -80,8 +80,8 @@ bash scripts/check-image.sh sdkman-ci:local
 The command smoke-tests the default and root users, runs [integration tests](tests/integration.sh),
 then removes its temporary cache volume. It installs Java and Kotlin, compiles
 programs, and tests cache reuse offline at a different path. [PR validation](.github/workflows/pr.yml)
-and releases use the same command. PRs need no registry
-credentials. To require PR validation, select `Build and test (amd64)` in branch rules.
+and releases use the same command. PRs and merge queues need no registry credentials.
+For branch protection or merge queues, require `Build and test (amd64)` in branch rules.
 
 ## Publishing releases
 
