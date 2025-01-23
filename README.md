@@ -82,6 +82,7 @@ then removes its temporary cache volume. It installs Java and Kotlin, compiles
 programs, and tests cache reuse offline at a different path. [PR validation](.github/workflows/pr.yml)
 and releases use the same command. PRs and merge queues need no registry credentials.
 For branch protection or merge queues, require `Build and test (amd64)` in branch rules.
+A weekly uncached build also checks upstream SDKMAN installer and Debian package changes.
 
 ## Publishing releases
 
