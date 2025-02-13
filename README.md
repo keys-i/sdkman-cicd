@@ -109,7 +109,7 @@ retrying.
 ## Modernization
 
 [Dependabot](.github/dependabot.yml) checks Actions and the Docker base image weekly.
-The project starts with a 2024-era baseline: Debian 12 and matching action
-versions. Builds fetch current Debian packages and SDKMAN, so they are not
-historical reproductions. Later checkpoints target dependency pinning,
-multi-platform validation, provenance, and SBOMs through 2025–2026.
+The Debian 12 base is pinned by digest. Builds still fetch current Debian packages
+and SDKMAN, so these tooling stages are not historical reproductions. Later
+checkpoints target Action and SDKMAN pinning, multi-platform validation,
+provenance, and SBOMs through 2025–2026.
