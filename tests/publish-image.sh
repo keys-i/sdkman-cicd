@@ -29,6 +29,20 @@ grep -Fxq "    $PUBLISH_IMAGE" "$GITHUB_STEP_SUMMARY"
 grep -Fxq "    docker.io/example/sdkman-ci@$digest" "$GITHUB_STEP_SUMMARY"
 
 : > "$PUSH_CALLS"
+for image in sdkman-ci docker.io/example/sdkman-ci registry.example:5000/sdkman-ci \
+    docker.io/example/sdkman-ci: docker.io/example/sdkman-ci:bad/tag \
+    "docker.io/example/sdkman-ci@$digest"; do
+    if PUBLISH_IMAGE="$image" bash "$project_dir/scripts/publish-image.sh" > "$test_dir/output" 2>&1; then
+        printf 'ERROR: accepted an image without a valid explicit tag\n' >&2
+        exit 1
+    fi
+    if [[ -s "$PUSH_CALLS" ]]; then
+        printf 'ERROR: pushed an image before validating its tag\n' >&2
+        exit 1
+    fi
+done
+
+: > "$PUSH_CALLS"
 for summary in "$test_dir" "$test_dir/missing/summary"; do
     if GITHUB_STEP_SUMMARY="$summary" bash "$project_dir/scripts/publish-image.sh" > "$test_dir/output" 2>&1; then
         printf 'ERROR: accepted an unusable summary path\n' >&2
