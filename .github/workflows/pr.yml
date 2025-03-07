@@ -8,6 +8,11 @@ on:
     - cron: '23 4 * * 1'
   workflow_dispatch:
     inputs:
+      architecture:
+        description: Image architecture to build and test
+        type: choice
+        options: [amd64, arm64]
+        default: amd64
       no_cache:
         description: Rebuild without cached image layers
         type: boolean
@@ -17,14 +22,16 @@ permissions:
   contents: read
 
 concurrency:
-  group: validate-image-${{ github.event.pull_request.number || github.ref }}
+  group: validate-image-${{ github.event.pull_request.number || github.ref }}-${{ inputs.architecture || 'amd64' }}
   cancel-in-progress: true
 
 jobs:
   build-test:
-    name: Build and test (amd64)
-    runs-on: ubuntu-24.04
+    name: Build and test (${{ inputs.architecture || 'amd64' }})
+    runs-on: ${{ inputs.architecture == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     timeout-minutes: 30
+    env:
+      IMAGE_ARCH: ${{ inputs.architecture || 'amd64' }}
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -50,15 +57,15 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64
+          platforms: linux/${{ env.IMAGE_ARCH }}
           tags: sdkman-ci:test
           load: true
           push: false
           pull: true
           no-cache: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.no_cache) }}
           build-args: BUILDKIT_DOCKERFILE_CHECK=error=true
-          cache-from: type=gha,scope=sdkman-ci-pr-amd64
-          cache-to: type=gha,scope=sdkman-ci-pr-amd64,mode=max
+          cache-from: type=gha,scope=sdkman-ci-pr-${{ env.IMAGE_ARCH }}
+          cache-to: type=gha,scope=sdkman-ci-pr-${{ env.IMAGE_ARCH }},mode=max
 
       - name: Check image and candidate cache
         timeout-minutes: 10
