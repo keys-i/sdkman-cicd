@@ -8,11 +8,17 @@ export BASH_ENV=/dev/null
 export IMAGE_CHECK_CALLS="$test_dir/calls"
 export IMAGE_CHECK_TESTS="$project_dir/tests"
 export IMAGE_CHECK_FAIL=''
+export IMAGE_CHECK_PLATFORM=linux/amd64
+unset EXPECTED_PLATFORM
 
 # Intercept every Docker call so these checks need no daemon or downloads
 docker() {
     local step network
     case "$1 $2" in
+        'image inspect')
+            [[ $# == 5 && "$3" == --format && "$4" == '{{.Os}}/{{.Architecture}}' && "$5" == sdkman-ci:check ]] || return 99
+            step=inspect
+            ;;
         'run --rm')
             step=${*: -1}
             network=none
@@ -57,6 +63,7 @@ docker() {
     printf '%s\n' "$step" >> "$IMAGE_CHECK_CALLS"
     [[ "$step" != "$IMAGE_CHECK_FAIL" ]] || return 37
     if [[ "$step" == create ]]; then printf 'check-volume\n'; fi
+    if [[ "$step" == inspect ]]; then printf '%s\n' "$IMAGE_CHECK_PLATFORM"; fi
 }
 export -f docker
 
@@ -77,6 +84,25 @@ for IMAGE_CHECK_FAIL in '' smoke root-smoke create install cached cleanup; do
     esac
     [[ "$status" == "$expected_status" ]]
     [[ $(cat "$IMAGE_CHECK_CALLS") == "$expected" ]]
+done
+
+IMAGE_CHECK_FAIL=''
+export EXPECTED_PLATFORM
+for IMAGE_CHECK_PLATFORM in linux/amd64 linux/arm64; do
+    EXPECTED_PLATFORM=$IMAGE_CHECK_PLATFORM
+    : > "$IMAGE_CHECK_CALLS"
+    bash "$project_dir/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1
+    [[ $(cat "$IMAGE_CHECK_CALLS") == $'inspect\nsmoke\nroot-smoke\ncreate\ninstall\ncached\ncleanup' ]]
+done
+
+EXPECTED_PLATFORM=linux/amd64
+for IMAGE_CHECK_FAIL in '' inspect; do
+    : > "$IMAGE_CHECK_CALLS"
+    status=0
+    bash "$project_dir/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1 || status=$?
+    expected_status=1
+    if [[ "$IMAGE_CHECK_FAIL" == inspect ]]; then expected_status=37; fi
+    [[ "$status" == "$expected_status" && $(cat "$IMAGE_CHECK_CALLS") == inspect ]]
 done
 
 : > "$IMAGE_CHECK_CALLS"

@@ -8,6 +8,14 @@ fi
 image=$1
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
 
+if [[ -n ${EXPECTED_PLATFORM:-} ]]; then
+    actual_platform=$(docker image inspect --format '{{.Os}}/{{.Architecture}}' "$image")
+    if [[ "$actual_platform" != "$EXPECTED_PLATFORM" ]]; then
+        printf 'ERROR: expected image platform %s, found %s\n' "$EXPECTED_PLATFORM" "$actual_platform" >&2
+        exit 1
+    fi
+fi
+
 docker run --rm --network none \
     --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
     --pull=never "$image" bash /tests/smoke.sh

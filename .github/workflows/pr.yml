@@ -69,4 +69,6 @@ jobs:
 
       - name: Check image and candidate cache
         timeout-minutes: 10
+        env:
+          EXPECTED_PLATFORM: linux/${{ env.IMAGE_ARCH }}
         run: bash scripts/check-image.sh sdkman-ci:test

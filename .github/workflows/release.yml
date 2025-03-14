@@ -88,6 +88,8 @@ jobs:
 
       - name: Check image and candidate cache
         timeout-minutes: 10
+        env:
+          EXPECTED_PLATFORM: linux/amd64
         run: bash scripts/check-image.sh "$TEST_IMAGE"
 
       - name: Tag the tested image for Docker Hub
