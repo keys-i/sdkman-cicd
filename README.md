@@ -85,8 +85,9 @@ programs, and tests cache reuse offline at a different path. [PR validation](.gi
 and releases use the same command. PRs and merge queues need no registry credentials.
 For branch protection or merge queues, require `Build and test (amd64)` in branch rules.
 A weekly uncached build checks upstream SDKMAN and Debian changes. Manual runs of
-**Validate CI image** offer `no_cache` and an `architecture` choice. ARM64 testing
-requires access to `ubuntu-24.04-arm`; release images remain amd64.
+**Validate CI image** offer `no_cache` and an `architecture` choice: `amd64`, `arm64`,
+or `both` for parallel tests. ARM64 testing requires access to `ubuntu-24.04-arm`;
+release images remain amd64.
 
 ## Publishing releases
 

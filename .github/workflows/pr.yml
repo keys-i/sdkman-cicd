@@ -9,9 +9,9 @@ on:
   workflow_dispatch:
     inputs:
       architecture:
-        description: Image architecture to build and test
+        description: Image architectures to build and test
         type: choice
-        options: [amd64, arm64]
+        options: [amd64, arm64, both]
         default: amd64
       no_cache:
         description: Rebuild without cached image layers
@@ -27,11 +27,15 @@ concurrency:
 
 jobs:
   build-test:
-    name: Build and test (${{ inputs.architecture || 'amd64' }})
-    runs-on: ${{ inputs.architecture == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    name: Build and test (${{ matrix.architecture }})
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: ${{ fromJSON('{"amd64":["amd64"],"arm64":["arm64"],"both":["amd64","arm64"]}')[inputs.architecture || 'amd64'] }}
+    runs-on: ${{ matrix.architecture == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     timeout-minutes: 30
     env:
-      IMAGE_ARCH: ${{ inputs.architecture || 'amd64' }}
+      IMAGE_ARCH: ${{ matrix.architecture }}
     steps:
       - name: Check out source
         uses: actions/checkout@v4
