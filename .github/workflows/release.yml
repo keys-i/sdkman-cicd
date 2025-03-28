@@ -83,8 +83,8 @@ jobs:
           push: false
           pull: true
           build-args: BUILDKIT_DOCKERFILE_CHECK=error=true
-          cache-from: type=gha,scope=sdkman-ci-release-amd64
-          cache-to: type=gha,scope=sdkman-ci-release-amd64,mode=max
+          cache-from: type=gha,version=2,scope=sdkman-ci-release-amd64
+          cache-to: type=gha,version=2,scope=sdkman-ci-release-amd64,mode=max
 
       - name: Check image and candidate cache
         timeout-minutes: 10
