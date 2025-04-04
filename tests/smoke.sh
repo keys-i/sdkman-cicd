@@ -7,6 +7,8 @@ set -e -o pipefail
 [[ "${sdkman_selfupdate_feature:-}" == false ]]
 [[ "${sdkman_colour_enable:-}" == false ]]
 [[ "${sdkman_checksum_enable:-}" == true ]]
+[[ "${sdkman_curl_retry:-}" == 3 ]]
+[[ "${sdkman_curl_retry_max_time:-}" == 60 ]]
 command -v shasum > /dev/null
 
 test_dir=$(mktemp -d)

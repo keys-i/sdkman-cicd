@@ -21,4 +21,6 @@ printf '\n%s\n' \
     sdkman_checksum_enable=true \
     sdkman_auto_complete=false \
     sdkman_auto_env=false \
-    sdkman_healthcheck_enable=false >> "$SDKMAN_DIR/etc/config"
+    sdkman_healthcheck_enable=false \
+    sdkman_curl_retry=3 \
+    sdkman_curl_retry_max_time=60 >> "$SDKMAN_DIR/etc/config"
