@@ -2,7 +2,7 @@
 set -euo pipefail
 
 project_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
-validator="$project_dir/scripts/validate-dockerhub-repository.sh"
+validator="$project_dir/.github/workflowes/scripts/validate-dockerhub-repository.sh"
 printf -v longest_repository 'team/%250s' ''
 longest_repository=${longest_repository// /a}
 

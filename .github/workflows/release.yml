@@ -12,25 +12,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  validate-tag:
-    name: Validate release tag
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - name: Check out release source
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-
-      - name: Validate the release tag for Docker Hub
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: bash scripts/validate-release-tag.sh "$RELEASE_TAG"
-
   build-test:
     name: Build, test, and publish release (amd64)
-    needs: validate-tag
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -43,6 +26,11 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
 
+      - name: Validate the release tag for Docker Hub
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: bash .github/workflowes/scripts/validate-release-tag.sh "$RELEASE_TAG"
+
       - name: Check Docker Hub configuration
         env:
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
@@ -52,10 +40,10 @@ jobs:
           : "${DOCKERHUB_USERNAME:?Set the DOCKERHUB_USERNAME repository variable}"
           : "${DOCKERHUB_REPOSITORY:?Set the DOCKERHUB_REPOSITORY repository variable to namespace/repository}"
           : "${DOCKERHUB_TOKEN:?Set the DOCKERHUB_TOKEN repository secret}"
-          bash scripts/validate-dockerhub-repository.sh "$DOCKERHUB_REPOSITORY"
+          bash .github/workflowes/scripts/validate-dockerhub-repository.sh "$DOCKERHUB_REPOSITORY"
 
       - name: Run offline checks
-        run: bash scripts/check.sh
+        run: bash .github/workflowes/scripts/check.sh
 
       - name: Lint GitHub workflows
         run: |
@@ -90,7 +78,7 @@ jobs:
         timeout-minutes: 10
         env:
           EXPECTED_PLATFORM: linux/amd64
-        run: bash scripts/check-image.sh "$TEST_IMAGE"
+        run: bash .github/workflowes/scripts/check-image.sh "$TEST_IMAGE"
 
       - name: Tag the tested image for Docker Hub
         run: docker image tag "$TEST_IMAGE" "$PUBLISH_IMAGE"
@@ -106,4 +94,4 @@ jobs:
 
       - name: Push the tested release image
         timeout-minutes: 5
-        run: bash scripts/publish-image.sh
+        run: bash .github/workflowes/scripts/publish-image.sh

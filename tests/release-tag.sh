@@ -2,7 +2,7 @@
 set -euo pipefail
 
 project_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
-validator="$project_dir/scripts/validate-release-tag.sh"
+validator="$project_dir/.github/workflowes/scripts/validate-release-tag.sh"
 printf -v longest_tag '%128s' ''
 longest_tag=${longest_tag// /a}
 

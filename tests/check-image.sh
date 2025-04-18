@@ -72,7 +72,7 @@ cd "$test_dir"
 for IMAGE_CHECK_FAIL in '' smoke root-smoke create install cached cleanup; do
     : > "$IMAGE_CHECK_CALLS"
     status=0
-    bash "$project_dir/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1 || status=$?
+    bash "$project_dir/.github/workflowes/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1 || status=$?
     case "$IMAGE_CHECK_FAIL" in
         '') expected_status=0; expected=$'smoke\nroot-smoke\ncreate\ninstall\ncached\ncleanup' ;;
         smoke) expected_status=37; expected=smoke ;;
@@ -91,7 +91,7 @@ export EXPECTED_PLATFORM
 for IMAGE_CHECK_PLATFORM in linux/amd64 linux/arm64; do
     EXPECTED_PLATFORM=$IMAGE_CHECK_PLATFORM
     : > "$IMAGE_CHECK_CALLS"
-    bash "$project_dir/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1
+    bash "$project_dir/.github/workflowes/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1
     [[ $(cat "$IMAGE_CHECK_CALLS") == $'inspect\nsmoke\nroot-smoke\ncreate\ninstall\ncached\ncleanup' ]]
 done
 
@@ -99,7 +99,7 @@ EXPECTED_PLATFORM=linux/amd64
 for IMAGE_CHECK_FAIL in '' inspect; do
     : > "$IMAGE_CHECK_CALLS"
     status=0
-    bash "$project_dir/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1 || status=$?
+    bash "$project_dir/.github/workflowes/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1 || status=$?
     expected_status=1
     if [[ "$IMAGE_CHECK_FAIL" == inspect ]]; then expected_status=37; fi
     [[ "$status" == "$expected_status" && $(cat "$IMAGE_CHECK_CALLS") == inspect ]]
@@ -108,7 +108,7 @@ done
 : > "$IMAGE_CHECK_CALLS"
 check_usage() {
     local status=0
-    bash "$project_dir/scripts/check-image.sh" "$@" > "$test_dir/output" 2>&1 || status=$?
+    bash "$project_dir/.github/workflowes/scripts/check-image.sh" "$@" > "$test_dir/output" 2>&1 || status=$?
     [[ "$status" == 2 && ! -s "$IMAGE_CHECK_CALLS" ]]
 }
 check_usage

@@ -43,7 +43,7 @@ jobs:
           persist-credentials: false
 
       - name: Run offline checks
-        run: bash scripts/check.sh
+        run: bash .github/workflowes/scripts/check.sh
 
       - name: Lint GitHub workflows
         run: |
@@ -75,4 +75,4 @@ jobs:
         timeout-minutes: 10
         env:
           EXPECTED_PLATFORM: linux/${{ env.IMAGE_ARCH }}
-        run: bash scripts/check-image.sh sdkman-ci:test
+        run: bash .github/workflowes/scripts/check-image.sh sdkman-ci:test

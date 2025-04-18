@@ -68,7 +68,7 @@ an exact cache hit; GitLab runs `sdk env install` and reuses cached binaries.
 From this repository, run the offline checks with Bash and ShellCheck:
 
 ```sh
-bash scripts/check.sh
+bash .github/workflowes/scripts/check.sh
 ```
 
 CI also lints the workflows and GitHub example with a pinned Actionlint image.
@@ -76,7 +76,7 @@ CI also lints the workflows and GitHub example with a pinned Actionlint image.
 Build the image locally first; tests never pull it. SDK installation needs internet:
 
 ```sh
-bash scripts/check-image.sh sdkman-ci:local
+bash .github/workflowes/scripts/check-image.sh sdkman-ci:local
 ```
 
 The command smoke-tests the default and root users, runs [integration tests](tests/integration.sh),
@@ -103,7 +103,7 @@ Publishing a release, including a prerelease, triggers the
 [release workflow](.github/workflows/release.yml). It validates the tag and destination format, builds
 and tests the image, then pushes `docker.io/<namespace>/<repository>:<release-tag>`.
 The full tag is preserved. Tags such as `v1.2.3` are valid; spaces, slashes, and
-`+` are rejected by the [tag validator](scripts/validate-release-tag.sh).
+`+` are rejected by the [tag validator](.github/workflowes/scripts/validate-release-tag.sh).
 
 The job summary provides the digest reference for pinning CI images. Release
 images also carry version, source commit, and repository labels. If digest

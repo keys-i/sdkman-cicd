@@ -2,11 +2,11 @@
 set -euo pipefail
 
 if (( $# != 1 )) || [[ -z $1 || $1 == -* ]]; then
-    printf 'Usage: bash scripts/check-image.sh IMAGE\n' >&2
+    printf 'Usage: bash .github/workflowes/scripts/check-image.sh IMAGE\n' >&2
     exit 2
 fi
 image=$1
-cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.."
 
 if [[ -n ${EXPECTED_PLATFORM:-} ]]; then
     actual_platform=$(docker image inspect --format '{{.Os}}/{{.Architecture}}' "$image")
