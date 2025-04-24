@@ -84,7 +84,8 @@ then removes its temporary cache volume. It installs Java and Kotlin, compiles
 programs, and tests cache reuse offline at a different path. [PR validation](.github/workflows/pr.yml)
 and releases use the same command. PRs and merge queues need no registry credentials.
 For branch protection or merge queues, require `Build and test (amd64)` in branch rules.
-A weekly uncached build checks upstream SDKMAN and Debian changes. Manual runs of
+A weekly uncached build checks upstream changes on amd64, plus ARM64 in public repositories.
+Manual runs of
 **Validate CI image** offer `no_cache` and an `architecture` choice: `amd64`, `arm64`,
 or `both` for parallel tests. ARM64 testing requires access to `ubuntu-24.04-arm`;
 release images remain amd64.
