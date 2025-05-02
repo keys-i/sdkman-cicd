@@ -71,7 +71,8 @@ From this repository, run the offline checks with Bash and ShellCheck:
 bash .github/workflowes/scripts/check.sh
 ```
 
-CI also lints the workflows and GitHub example with a pinned Actionlint image.
+Lint workflows as CI does with `bash .github/workflowes/scripts/lint-workflows.sh`
+(requires Docker and uses a pinned Actionlint image).
 
 Build the image locally first; tests never pull it. SDK installation needs internet:
 
