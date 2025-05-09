@@ -39,10 +39,12 @@ for mode in install cached; do
         network=bridge
         cache_mount=/workspace
     fi
-    docker run --rm --network "$network" \
-        --mount "type=volume,src=$cache_volume,dst=$cache_mount" \
-        --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
-        --env "SDKMAN_CANDIDATES_DIR=$cache_mount/candidates" \
-        --workdir /tests \
-        --pull=never "$image" bash /tests/integration.sh "$mode"
+    for fixture_dir in /tests /tests/java17; do
+        docker run --rm --network "$network" \
+            --mount "type=volume,src=$cache_volume,dst=$cache_mount" \
+            --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
+            --env "SDKMAN_CANDIDATES_DIR=$cache_mount/candidates" \
+            --workdir "$fixture_dir" \
+            --pull=never "$image" bash /tests/integration.sh "$mode"
+    done
 done
