@@ -38,7 +38,7 @@ when your runner requires root.
 ## Caching
 
 Set `SDKMAN_CANDIDATES_DIR` to an absolute, writable path. Restore that directory
-before installation and save it after success. Cache only candidates, keeping
+before installation and save it after SDK validation. Cache only candidates, keeping
 the image's `/opt/sdkman` installation intact.
 
 Include OS, architecture, image reference, and the `.sdkmanrc` hash in cache keys.
@@ -61,7 +61,8 @@ Keep `.sdkmanrc` and your build wrapper at the application root.
 Both examples use Linux amd64 containers as root for workspace permissions.
 The GitLab example selects a hosted Docker runner; adapt its tag for your own
 runner and keep protected-branch caches separate. GitHub skips installation on
-an exact cache hit; GitLab runs `sdk env install` and reuses cached binaries.
+an exact cache hit and saves validated SDKs before the build. GitLab runs
+`sdk env install` and reuses cached binaries.
 
 ## Local checks
 

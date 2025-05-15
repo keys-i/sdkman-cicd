@@ -38,7 +38,7 @@ jobs:
 
       - name: Restore SDK candidates
         id: candidates
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ${{ env.SDKMAN_CANDIDATES_DIR }}
           key: sdkman-app-v1-${{ runner.os }}-${{ runner.arch }}-${{ github.event_name }}-${{ vars.SDKMAN_CI_IMAGE }}-${{ hashFiles('.sdkmanrc') }}
@@ -46,7 +46,16 @@ jobs:
       - name: Install missing candidates
         if: steps.candidates.outputs.cache-hit != 'true'
         timeout-minutes: 10
-        run: sdk env install
+        run: |
+          sdk env install
+          bash -e -o pipefail -c 'sdk env'
+
+      - name: Save validated SDK candidates
+        if: steps.candidates.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDKMAN_CANDIDATES_DIR }}
+          key: ${{ steps.candidates.outputs.cache-primary-key }}
 
       - name: Build and test
         run: sdk env && ./gradlew test
