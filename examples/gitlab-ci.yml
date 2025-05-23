@@ -28,5 +28,5 @@ sdkman-test:
     when: on_success
   script:
     - test -s .sdkmanrc
-    - bash -e -o pipefail -c 'sdk env install'
+    - bash -e -o pipefail -c 'sdk env || sdk env install'
     - bash -e -o pipefail -c 'sdk env && ./gradlew test'

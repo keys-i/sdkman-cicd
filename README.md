@@ -61,8 +61,8 @@ Keep `.sdkmanrc` and your build wrapper at the application root.
 Both examples use Linux amd64 containers as root for workspace permissions.
 The GitLab example selects a hosted Docker runner; adapt its tag for your own
 runner and keep protected-branch caches separate. GitHub skips installation on
-an exact cache hit and saves validated SDKs before the build. GitLab runs
-`sdk env install` and reuses cached binaries.
+an exact cache hit and saves validated SDKs before the build. GitLab tries
+`sdk env` first and installs only when activation fails.
 
 ## Local checks
 
