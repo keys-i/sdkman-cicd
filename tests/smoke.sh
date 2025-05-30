@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -e -o pipefail
 
+[[ $(id -u) == "${1:?Expected container UID is required}" ]]
 [[ $(type -t sdk) == function ]]
 [[ "$SDKMAN_CANDIDATES_DIR" == "$SDKMAN_DIR/candidates" ]]
 [[ "${sdkman_auto_answer:-}" == true ]]

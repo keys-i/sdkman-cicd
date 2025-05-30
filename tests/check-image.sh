@@ -22,16 +22,16 @@ docker() {
         'run --rm')
             step=${*: -1}
             network=none
-            if [[ "$step" == /tests/smoke.sh ]]; then
+            if [[ "${*: -2:1}" == /tests/smoke.sh ]]; then
                 step=smoke
-                if [[ $# == 12 ]]; then
-                    [[ "$7" == --user && "$8" == 0 ]] || return 99
+                if [[ $# == 13 ]]; then
+                    [[ "$7" == --user && "$8" == 0 && "${13}" == 0 ]] || return 99
                     step=root-smoke
                 else
-                    [[ $# == 10 ]] || return 99
+                    [[ $# == 11 && "${11}" == 1000 ]] || return 99
                 fi
-                [[ "${*: -4:1}" == --pull=never ]] || return 99
-                [[ "${*: -3:1}" == sdkman-ci:check ]] || return 99
+                [[ "${*: -5:1}" == --pull=never ]] || return 99
+                [[ "${*: -4:1}" == sdkman-ci:check ]] || return 99
                 [[ "$6" == "type=bind,src=$IMAGE_CHECK_TESTS,dst=/tests,readonly" ]] || return 99
             else
                 [[ "$step" == install || "$step" == cached ]] || return 99

@@ -18,11 +18,11 @@ fi
 
 docker run --rm --network none \
     --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
-    --pull=never "$image" bash /tests/smoke.sh
+    --pull=never "$image" bash /tests/smoke.sh 1000
 
 docker run --rm --network none \
     --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
-    --user 0 --pull=never "$image" bash /tests/smoke.sh
+    --user 0 --pull=never "$image" bash /tests/smoke.sh 0
 
 cache_volume=$(docker volume create)
 cleanup() {
