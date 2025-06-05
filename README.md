@@ -30,10 +30,10 @@ docker run --rm \
   sdkman-ci:local bash -c 'sdk env install && bash -c "sdk env && ./gradlew test"'
 ```
 
-Use **Bash** and leave `set -u` disabled while calling SDKMAN. The image loads
-SDKMAN through `BASH_ENV`; the fresh shell after installation loads candidate
-paths. Mounted directories must be writable by UID/GID 1000, or use `--user 0`
-when your runner requires root.
+Use **Bash** and leave `set -u` disabled while calling SDKMAN. SDKMAN loads in
+interactive shells and through `BASH_ENV` for scripts. A fresh shell after
+installation loads candidate paths. Mounted directories must be writable by
+UID/GID 1000, or use `--user 0` when your runner requires root.
 
 ## Caching
 

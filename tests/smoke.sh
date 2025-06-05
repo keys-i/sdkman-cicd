@@ -12,6 +12,13 @@ set -e -o pipefail
 [[ "${sdkman_curl_retry_max_time:-}" == 60 ]]
 command -v shasum > /dev/null
 
+# Prevent inherited SDKMAN state from masking a missing interactive startup hook
+(
+    unset -f sdk
+    unset BASH_ENV
+    bash -ic '[[ $(type -t sdk) == function ]]'
+)
+
 test_dir=$(mktemp -d)
 trap 'rm -rf -- "$test_dir"' EXIT
 

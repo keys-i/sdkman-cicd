@@ -12,7 +12,8 @@ RUN apt-get update \
         zip \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 1000 --shell /bin/bash sdkman \
-    && install -d -o sdkman -g sdkman /opt/sdkman /workspace
+    && install -d -o sdkman -g sdkman /opt/sdkman /workspace \
+    && printf '\nsource "$SDKMAN_DIR/bin/sdkman-init.sh"\n' >> /etc/bash.bashrc
 
 ENV SDKMAN_DIR=/opt/sdkman
 
@@ -30,7 +31,6 @@ RUN curl --fail --show-error --silent --location \
     && bash /tmp/install-sdkman.sh \
     && bash /tmp/configure-sdkman.sh \
     && rm /tmp/install-sdkman.sh /tmp/configure-sdkman.sh \
-    && printf '\nsource "$SDKMAN_DIR/bin/sdkman-init.sh"\n' >> /home/sdkman/.bashrc \
     && source "$SDKMAN_DIR/bin/sdkman-init.sh" \
     && sdk version
 
