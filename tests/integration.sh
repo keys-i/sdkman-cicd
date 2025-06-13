@@ -34,15 +34,15 @@ trap 'rm -rf -- "$build_dir"' EXIT
 cat > "$build_dir/Hello.java" <<'JAVA'
 class Hello {
     public static void main(String[] args) {
-        System.out.println(System.getProperty("java.version"));
+        System.out.println(System.getProperty("java.version") + ": café 世界");
     }
 }
 JAVA
 javac -d "$build_dir" "$build_dir/Hello.java"
-[[ $(java -cp "$build_dir" Hello) == "${java_version%-*}" ]]
+[[ $(java -cp "$build_dir" Hello) == "${java_version%-*}: café 世界" ]]
 
-printf 'fun main() { println("Kotlin ready") }\n' > "$build_dir/Hello.kt"
+printf 'fun main() { println("Kotlin ready: café 世界") }\n' > "$build_dir/Hello.kt"
 kotlinc "$build_dir/Hello.kt" -include-runtime -d "$build_dir/hello.jar"
-[[ $(java -jar "$build_dir/hello.jar") == 'Kotlin ready' ]]
+[[ $(java -jar "$build_dir/hello.jar") == 'Kotlin ready: café 世界' ]]
 
 printf 'Java and Kotlin installation, selection, compilation, and execution passed\n'

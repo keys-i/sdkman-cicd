@@ -2,6 +2,7 @@
 set -e -o pipefail
 
 [[ $(id -u) == "${1:?Expected container UID is required}" ]]
+[[ $(locale charmap) == UTF-8 ]]
 [[ $(type -t sdk) == function ]]
 [[ "$SDKMAN_CANDIDATES_DIR" == "$SDKMAN_DIR/candidates" ]]
 [[ "${sdkman_auto_answer:-}" == true ]]

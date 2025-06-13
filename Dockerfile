@@ -15,7 +15,8 @@ RUN apt-get update \
     && install -d -o sdkman -g sdkman /opt/sdkman /workspace \
     && printf '\nsource "$SDKMAN_DIR/bin/sdkman-init.sh"\n' >> /etc/bash.bashrc
 
-ENV SDKMAN_DIR=/opt/sdkman
+ENV SDKMAN_DIR=/opt/sdkman \
+    LANG=C.UTF-8
 
 COPY --chown=sdkman:sdkman docker/configure-sdkman.sh /tmp/configure-sdkman.sh
 
