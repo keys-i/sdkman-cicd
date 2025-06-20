@@ -106,6 +106,7 @@ Create a public Docker Hub repository and configure these GitHub repository sett
 Publishing a release, including a prerelease, triggers the
 [release workflow](.github/workflows/release.yml). It validates the tag and destination format, builds
 and tests the image, then pushes `docker.io/<namespace>/<repository>:<release-tag>`.
+Release builds bypass layer caches to refresh Debian packages and SDKMAN.
 The full tag is preserved. Tags such as `v1.2.3` are valid; spaces, slashes, and
 `+` are rejected by the [tag validator](.github/workflowes/scripts/validate-release-tag.sh).
 
