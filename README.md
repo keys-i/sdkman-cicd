@@ -95,13 +95,18 @@ release images remain amd64.
 
 ## Publishing releases
 
-Create a public Docker Hub repository and configure these GitHub repository settings:
+Create a public Docker Hub repository and a GitHub [environment](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments)
+named `dockerhub`. Under **Deployment branches and tags**, choose **Selected branches
+and tags** and add a **Tag** rule matching your releases, such as `v*`. Configure:
 
 | Name | Type | Value |
 | --- | --- | --- |
-| `DOCKERHUB_USERNAME` | Variable | Account with write access to the repository |
-| `DOCKERHUB_REPOSITORY` | Variable | Lowercase `namespace/repository`, without a hostname, tag, or digest |
-| `DOCKERHUB_TOKEN` | Secret | That account's personal access token with Read and Write permissions |
+| `DOCKERHUB_USERNAME` | Repository variable | Account with write access to the repository |
+| `DOCKERHUB_REPOSITORY` | Repository variable | Lowercase `namespace/repository`, without a hostname, tag, or digest |
+| `DOCKERHUB_TOKEN` | `dockerhub` environment secret | That account's personal access token with Read and Write permissions |
+
+Move any existing `DOCKERHUB_TOKEN` repository secret into this environment.
+Private GitHub repositories require Pro, Team, or Enterprise for environments.
 
 Publishing a release, including a prerelease, triggers the
 [release workflow](.github/workflows/release.yml). It validates the tag and destination format, builds

@@ -16,6 +16,7 @@ jobs:
     name: Build, test, and publish release (amd64)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    environment: dockerhub
     env:
       TEST_IMAGE: sdkman-ci:${{ github.event.release.tag_name }}
       PUBLISH_IMAGE: docker.io/${{ vars.DOCKERHUB_REPOSITORY }}:${{ github.event.release.tag_name }}
