@@ -7,19 +7,22 @@ on:
 permissions:
   contents: read
 
+env:
+  TEST_IMAGE: sdkman-ci:${{ github.event.release.tag_name }}
+  PUBLISH_IMAGE: docker.io/${{ vars.DOCKERHUB_REPOSITORY }}:${{ github.event.release.tag_name }}
+
 concurrency:
   group: publish-release-${{ github.event.release.tag_name }}
   cancel-in-progress: false
 
 jobs:
   build-test:
-    name: Build, test, and publish release (amd64)
+    name: Build and test release (amd64)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    environment: dockerhub
-    env:
-      TEST_IMAGE: sdkman-ci:${{ github.event.release.tag_name }}
-      PUBLISH_IMAGE: docker.io/${{ vars.DOCKERHUB_REPOSITORY }}:${{ github.event.release.tag_name }}
+    outputs:
+      image-id: ${{ steps.export.outputs.image-id }}
+      artifact-name: ${{ steps.export.outputs.artifact-name }}
     steps:
       - name: Check out release source
         uses: actions/checkout@v4
@@ -32,15 +35,13 @@ jobs:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: bash .github/workflowes/scripts/validate-release-tag.sh "$RELEASE_TAG"
 
-      - name: Check Docker Hub configuration
+      - name: Check Docker Hub variables
         env:
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_REPOSITORY: ${{ vars.DOCKERHUB_REPOSITORY }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
           : "${DOCKERHUB_USERNAME:?Set the DOCKERHUB_USERNAME repository variable}"
           : "${DOCKERHUB_REPOSITORY:?Set the DOCKERHUB_REPOSITORY repository variable to namespace/repository}"
-          : "${DOCKERHUB_TOKEN:?Set the DOCKERHUB_TOKEN repository secret}"
           bash .github/workflowes/scripts/validate-dockerhub-repository.sh "$DOCKERHUB_REPOSITORY"
 
       - name: Run offline checks
@@ -74,6 +75,48 @@ jobs:
           EXPECTED_PLATFORM: linux/amd64
         run: bash .github/workflowes/scripts/check-image.sh "$TEST_IMAGE"
 
+      - name: Export the tested image
+        id: export
+        run: |
+          image_id=$(docker image inspect --format '{{.Id}}' "$TEST_IMAGE")
+          docker image save --output "$RUNNER_TEMP/release-image.tar" "$TEST_IMAGE"
+          printf 'image-id=%s\nartifact-name=release-image-%s\n' "$image_id" "$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the tested image
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.export.outputs.artifact-name }}
+          path: ${{ runner.temp }}/release-image.tar
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish tested release
+    needs: build-test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: dockerhub
+    steps:
+      - name: Check out release source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Check Docker Hub token
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: ': "${DOCKERHUB_TOKEN:?Set DOCKERHUB_TOKEN in the dockerhub environment}"'
+
+      - name: Download the tested image
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-test.outputs.artifact-name }}
+          path: ${{ runner.temp }}
+
+      - name: Load the tested image
+        run: docker image load --input "$RUNNER_TEMP/release-image.tar"
+
       - name: Tag the tested image for Docker Hub
         run: docker image tag "$TEST_IMAGE" "$PUBLISH_IMAGE"
 
@@ -88,4 +131,6 @@ jobs:
 
       - name: Push the tested release image
         timeout-minutes: 5
+        env:
+          EXPECTED_IMAGE_ID: ${{ needs.build-test.outputs.image-id }}
         run: bash .github/workflowes/scripts/publish-image.sh

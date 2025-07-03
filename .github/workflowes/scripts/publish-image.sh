@@ -3,6 +3,7 @@ set -euo pipefail
 export LC_ALL=C
 
 : "${PUBLISH_IMAGE:?PUBLISH_IMAGE must name the tested release image}"
+: "${EXPECTED_IMAGE_ID:?EXPECTED_IMAGE_ID must identify the tested release image}"
 : "${GITHUB_STEP_SUMMARY:?GITHUB_STEP_SUMMARY must name the job summary file}"
 if [[ "$PUBLISH_IMAGE" != *:* || "$PUBLISH_IMAGE" == *@* ]]; then
     printf 'PUBLISH_IMAGE must include an explicit image tag and no digest\n' >&2
@@ -10,6 +11,12 @@ if [[ "$PUBLISH_IMAGE" != *:* || "$PUBLISH_IMAGE" == *@* ]]; then
 fi
 bash "$(dirname -- "${BASH_SOURCE[0]}")/validate-release-tag.sh" "${PUBLISH_IMAGE##*:}"
 : >> "$GITHUB_STEP_SUMMARY"
+
+image_id=$(docker image inspect --format '{{.Id}}' "$PUBLISH_IMAGE")
+if [[ "$image_id" != "$EXPECTED_IMAGE_ID" ]]; then
+    printf 'ERROR: publish image differs from the tested image\n' >&2
+    exit 1
+fi
 
 push_log=$(mktemp)
 trap 'rm -f -- "$push_log"' EXIT
