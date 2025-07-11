@@ -22,6 +22,7 @@ jobs:
     timeout-minutes: 30
     outputs:
       image-id: ${{ steps.export.outputs.image-id }}
+      archive-sha256: ${{ steps.export.outputs.archive-sha256 }}
       artifact-name: ${{ steps.export.outputs.artifact-name }}
     steps:
       - name: Check out release source
@@ -80,6 +81,8 @@ jobs:
         run: |
           image_id=$(docker image inspect --format '{{.Id}}' "$TEST_IMAGE")
           docker image save --output "$RUNNER_TEMP/release-image.tar" "$TEST_IMAGE"
+          archive_sha256=$(sha256sum "$RUNNER_TEMP/release-image.tar")
+          printf 'archive-sha256=%s\n' "${archive_sha256%% *}" >> "$GITHUB_OUTPUT"
           printf 'image-id=%s\nartifact-name=release-image-%s\n' "$image_id" "$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
 
       - name: Upload the tested image
@@ -115,7 +118,12 @@ jobs:
           path: ${{ runner.temp }}
 
       - name: Load the tested image
-        run: docker image load --input "$RUNNER_TEMP/release-image.tar"
+        working-directory: ${{ runner.temp }}
+        env:
+          EXPECTED_ARCHIVE_SHA256: ${{ needs.build-test.outputs.archive-sha256 }}
+        run: |
+          printf '%s  release-image.tar\n' "$EXPECTED_ARCHIVE_SHA256" | sha256sum --check --strict
+          docker image load --input release-image.tar
 
       - name: Tag the tested image for Docker Hub
         run: docker image tag "$TEST_IMAGE" "$PUBLISH_IMAGE"
