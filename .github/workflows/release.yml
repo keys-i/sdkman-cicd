@@ -9,7 +9,6 @@ permissions:
 
 env:
   TEST_IMAGE: sdkman-ci:${{ github.event.release.tag_name }}
-  PUBLISH_IMAGE: docker.io/${{ vars.DOCKERHUB_REPOSITORY }}:${{ github.event.release.tag_name }}
 
 concurrency:
   group: publish-release-${{ github.event.release.tag_name }}
@@ -20,10 +19,13 @@ jobs:
     name: Build and test release (amd64)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    env:
+      PUBLISH_IMAGE: docker.io/${{ vars.DOCKERHUB_REPOSITORY }}:${{ github.event.release.tag_name }}
     outputs:
       image-id: ${{ steps.export.outputs.image-id }}
       archive-sha256: ${{ steps.export.outputs.archive-sha256 }}
       artifact-name: ${{ steps.export.outputs.artifact-name }}
+      publish-image: ${{ steps.export.outputs.publish-image }}
     steps:
       - name: Check out release source
         uses: actions/checkout@v4
@@ -82,8 +84,11 @@ jobs:
           image_id=$(docker image inspect --format '{{.Id}}' "$TEST_IMAGE")
           docker image save --output "$RUNNER_TEMP/release-image.tar" "$TEST_IMAGE"
           archive_sha256=$(sha256sum "$RUNNER_TEMP/release-image.tar")
-          printf 'archive-sha256=%s\n' "${archive_sha256%% *}" >> "$GITHUB_OUTPUT"
-          printf 'image-id=%s\nartifact-name=release-image-%s\n' "$image_id" "$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+          printf '%s\n' \
+            "archive-sha256=${archive_sha256%% *}" \
+            "image-id=$image_id" \
+            "artifact-name=release-image-$GITHUB_RUN_ATTEMPT" \
+            "publish-image=$PUBLISH_IMAGE" >> "$GITHUB_OUTPUT"
 
       - name: Upload the tested image
         uses: actions/upload-artifact@v4
@@ -99,6 +104,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment: dockerhub
+    env:
+      PUBLISH_IMAGE: ${{ needs.build-test.outputs.publish-image }}
     steps:
       - name: Check out release source
         uses: actions/checkout@v4
