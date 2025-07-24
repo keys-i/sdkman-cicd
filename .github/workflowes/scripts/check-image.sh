@@ -27,7 +27,9 @@ docker run --rm --network none \
 cache_volume=$(docker volume create)
 cleanup() {
     local status=$?
-    docker volume rm "$cache_volume" || exit 1
+    if ! docker volume rm "$cache_volume" && (( status == 0 )); then
+        status=1
+    fi
     exit "$status"
 }
 trap cleanup EXIT

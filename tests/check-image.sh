@@ -8,6 +8,7 @@ export BASH_ENV=/dev/null
 export IMAGE_CHECK_CALLS="$test_dir/calls"
 export IMAGE_CHECK_TESTS="$project_dir/tests"
 export IMAGE_CHECK_FAIL=''
+export IMAGE_CHECK_CLEANUP_STATUS=0
 export IMAGE_CHECK_PLATFORM=linux/amd64
 unset EXPECTED_PLATFORM
 
@@ -67,6 +68,7 @@ docker() {
     esac
     printf '%s\n' "$step" >> "$IMAGE_CHECK_CALLS"
     [[ "$step" != "$IMAGE_CHECK_FAIL" ]] || return 37
+    if [[ "$step" == cleanup ]]; then return "$IMAGE_CHECK_CLEANUP_STATUS"; fi
     if [[ "$step" == create ]]; then printf 'check-volume\n'; fi
     if [[ "$step" == inspect ]]; then printf '%s\n' "$IMAGE_CHECK_PLATFORM"; fi
 }
@@ -92,6 +94,14 @@ for IMAGE_CHECK_FAIL in '' smoke root-smoke create install install-java17 cached
     [[ "$status" == "$expected_status" ]]
     [[ $(cat "$IMAGE_CHECK_CALLS") == "$expected" ]]
 done
+
+# Keep the container failure when cleanup also fails
+: > "$IMAGE_CHECK_CALLS"
+status=0
+IMAGE_CHECK_FAIL=install IMAGE_CHECK_CLEANUP_STATUS=38 \
+    bash "$project_dir/.github/workflowes/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1 || status=$?
+[[ "$status" == 37 ]]
+[[ $(cat "$IMAGE_CHECK_CALLS") == $'smoke\nroot-smoke\ncreate\ninstall\ncleanup' ]]
 
 IMAGE_CHECK_FAIL=''
 export EXPECTED_PLATFORM
