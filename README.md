@@ -126,7 +126,9 @@ retrying.
 
 ## Modernization
 
-[Dependabot](.github/dependabot.yml) checks Actions and the Docker base image weekly.
+[Dependabot](.github/dependabot.yml) checks workflow Actions and the Docker base weekly,
+grouping artifact upload/download version updates. Update `examples/` and the
+pinned Actionlint image manually; they are outside its configured coverage.
 The Debian 12 base is pinned by digest. Builds still fetch current Debian packages
 and SDKMAN, so these tooling stages are not historical reproductions. Later
 checkpoints target Action and SDKMAN pinning, multi-platform validation,
