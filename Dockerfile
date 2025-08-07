@@ -2,8 +2,8 @@ FROM debian:bookworm-slim@sha256:40b107342c492725bc7aacbe93a49945445191ae364184a
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
+RUN apt-get -o Acquire::Retries=3 --error-on=any update \
+    && apt-get -o Acquire::Retries=3 install -y --no-install-recommends \
         bash \
         ca-certificates \
         curl \
