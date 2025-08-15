@@ -42,7 +42,7 @@ jobs:
       IMAGE_ARCH: ${{ matrix.architecture }}
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
 
