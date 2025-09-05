@@ -5,6 +5,12 @@ set -e -o pipefail
 [[ $(locale charmap) == UTF-8 ]]
 [[ $(type -t sdk) == function ]]
 [[ "$SDKMAN_CANDIDATES_DIR" == "$SDKMAN_DIR/candidates" ]]
+for candidate_command in java javac kotlinc; do
+    if command -v "$candidate_command" > /dev/null; then
+        printf 'ERROR: base image contains preinstalled %s\n' "$candidate_command" >&2
+        exit 1
+    fi
+done
 [[ "${sdkman_auto_answer:-}" == true ]]
 [[ "${sdkman_selfupdate_feature:-}" == false ]]
 [[ "${sdkman_colour_enable:-}" == false ]]
