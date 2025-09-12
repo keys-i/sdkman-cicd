@@ -41,7 +41,10 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.SDKMAN_CANDIDATES_DIR }}
+          # ponytail: old SDK versions accumulate; bump the key prefix to start fresh
           key: sdkman-app-v1-${{ runner.os }}-${{ runner.arch }}-${{ github.event_name }}-${{ vars.SDKMAN_CI_IMAGE }}-${{ hashFiles('.sdkmanrc') }}
+          restore-keys: |
+            sdkman-app-v1-${{ runner.os }}-${{ runner.arch }}-${{ github.event_name }}-${{ vars.SDKMAN_CI_IMAGE }}-
 
       - name: Install missing candidates
         timeout-minutes: 10

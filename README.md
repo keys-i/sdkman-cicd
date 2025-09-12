@@ -43,7 +43,7 @@ the image's `/opt/sdkman` installation intact.
 
 Include OS, architecture, image reference, and the `.sdkmanrc` hash in cache keys.
 Separate untrusted PR caches from release caches, and add `.cache/sdkman/` to
-`.gitignore`. Clear a damaged cache or change its key before retrying.
+`.gitignore`. Clear a damaged cache or change its key prefix before retrying.
 
 For an offline build with all candidates cached, use `sdk env && ./gradlew test`.
 `sdk env install` can still contact the SDKMAN API.
@@ -61,8 +61,8 @@ Keep `.sdkmanrc` and your build wrapper at the application root.
 Both examples use Linux amd64 containers as root for workspace permissions.
 The GitLab example selects a hosted Docker runner; adapt its tag for your own
 runner and keep protected-branch caches separate. Both examples try `sdk env`
-first and install only when activation fails. GitHub saves validated SDKs before
-the build when there was no exact cache hit.
+first and install only when activation fails. GitHub reuses SDKs across `.sdkmanrc`
+changes and saves validated SDKs before the build when there was no exact cache hit.
 
 ## Local checks
 
