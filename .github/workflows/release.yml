@@ -120,7 +120,7 @@ jobs:
         run: ': "${DOCKERHUB_TOKEN:?Set DOCKERHUB_TOKEN in the dockerhub environment}"'
 
       - name: Download the tested image
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ${{ needs.build-test.outputs.artifact-name }}
           path: ${{ runner.temp }}
