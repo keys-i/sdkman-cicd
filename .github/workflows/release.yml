@@ -92,6 +92,7 @@ jobs:
 
       - name: Upload the tested image
         uses: actions/upload-artifact@v4
+        timeout-minutes: 5
         with:
           name: ${{ steps.export.outputs.artifact-name }}
           path: ${{ runner.temp }}/release-image.tar
@@ -121,6 +122,7 @@ jobs:
 
       - name: Download the tested image
         uses: actions/download-artifact@v5
+        timeout-minutes: 5
         with:
           name: ${{ needs.build-test.outputs.artifact-name }}
           path: ${{ runner.temp }}
