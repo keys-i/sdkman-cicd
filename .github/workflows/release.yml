@@ -28,7 +28,7 @@ jobs:
       publish-image: ${{ steps.export.outputs.publish-image }}
     steps:
       - name: Check out release source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
@@ -110,7 +110,7 @@ jobs:
       EXPECTED_IMAGE_ID: ${{ needs.build-test.outputs.image-id }}
     steps:
       - name: Check out release source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
