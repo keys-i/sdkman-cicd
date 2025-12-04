@@ -13,11 +13,8 @@ if ! grep -Fxq "$new_assignment" "$sdkman_init.tmp"; then
 fi
 mv "$sdkman_init.tmp" "$sdkman_init"
 
-# Configure CI without relying on the installer's newer CI mode
+# Keep activation explicit and avoid background network checks
 printf '\n%s\n' \
-    sdkman_auto_answer=true \
-    sdkman_colour_enable=false \
-    sdkman_selfupdate_feature=false \
     sdkman_checksum_enable=true \
     sdkman_auto_complete=false \
     sdkman_auto_env=false \

@@ -18,10 +18,11 @@ export SDKMAN_CANDIDATES_DIR="${SDKMAN_DIR}/candidates"
 export JAVA_HOME="${SDKMAN_CANDIDATES_DIR}/java/current"
 export PATH="${JAVA_HOME}/bin:${PATH}"
 INIT
+# Start with CI mode's three settings and exercise the remaining overrides
 cat > "$config" <<'CONFIG'
-sdkman_auto_answer=false
-sdkman_colour_enable=true
-sdkman_selfupdate_feature=true
+sdkman_auto_answer=true
+sdkman_colour_enable=false
+sdkman_selfupdate_feature=false
 sdkman_checksum_enable=false
 sdkman_auto_complete=true
 sdkman_auto_env=true

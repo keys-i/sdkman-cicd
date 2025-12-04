@@ -27,7 +27,7 @@ RUN curl --fail --show-error --silent --location \
         --proto '=https' --proto-redir '=https' \
         --connect-timeout 10 --max-time 120 \
         --retry 3 --retry-max-time 180 \
-        'https://get.sdkman.io?rcupdate=false' \
+        'https://get.sdkman.io?ci=true&rcupdate=false' \
         --output /tmp/install-sdkman.sh \
     && bash /tmp/install-sdkman.sh \
     && bash /tmp/configure-sdkman.sh \
