@@ -19,11 +19,13 @@ done
 [[ "${sdkman_curl_retry_max_time:-}" == 60 ]]
 command -v shasum > /dev/null
 
-# Prevent inherited SDKMAN state from masking a missing interactive startup hook
+# Prevent inherited functions from masking missing shell startup hooks
 (
     unset -f sdk
+    bash -lc '[[ $(type -t sdk) == function ]]'
     unset BASH_ENV
     bash -ic '[[ $(type -t sdk) == function ]]'
+    bash -lic '[[ $(type -t sdk) == function ]]'
 )
 
 test_dir=$(mktemp -d)
