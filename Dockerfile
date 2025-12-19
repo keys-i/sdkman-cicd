@@ -23,15 +23,24 @@ COPY --chown=sdkman:sdkman docker/configure-sdkman.sh /tmp/configure-sdkman.sh
 USER sdkman
 WORKDIR /workspace
 
-RUN curl --fail --show-error --silent --location \
-        --proto '=https' --proto-redir '=https' \
-        --connect-timeout 10 --max-time 120 \
-        --retry 3 --retry-max-time 180 \
+# Apply the download policy to the installer and its child curl processes
+RUN sdkman_curl_home=$(mktemp -d) \
+    && printf '%s\n' \
+        'fail' \
+        'show-error' \
+        'proto = "=https"' \
+        'proto-redir = "=https"' \
+        'connect-timeout = 10' \
+        'max-time = 120' \
+        'retry = 3' \
+        'retry-max-time = 180' > "$sdkman_curl_home/.curlrc" \
+    && CURL_HOME="$sdkman_curl_home" curl --silent --location \
         'https://get.sdkman.io?ci=true&rcupdate=false' \
         --output /tmp/install-sdkman.sh \
-    && bash /tmp/install-sdkman.sh \
+    && CURL_HOME="$sdkman_curl_home" bash /tmp/install-sdkman.sh \
     && bash /tmp/configure-sdkman.sh \
-    && rm /tmp/install-sdkman.sh /tmp/configure-sdkman.sh \
+    && rm /tmp/install-sdkman.sh /tmp/configure-sdkman.sh "$sdkman_curl_home/.curlrc" \
+    && rmdir "$sdkman_curl_home" \
     && source "$SDKMAN_DIR/bin/sdkman-init.sh" \
     && sdk version
 
