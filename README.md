@@ -82,8 +82,8 @@ bash .github/workflowes/scripts/check-image.sh sdkman-ci:local
 ```
 
 The command smoke-tests the default and root users, runs [integration tests](tests/integration.sh),
-then removes its temporary cache volume. It installs Java 17 and 21 plus Kotlin,
-compiles programs under both JDKs, and tests cache reuse offline at a different path.
+then removes its temporary cache volume. It installs Java 17, 21, and 25 with Kotlin
+2.0.20 and 2.3.0, compiles programs, and tests cache reuse offline at a different path.
 [PR validation](.github/workflows/pr.yml)
 and releases use the same command. PRs and merge queues need no registry credentials.
 For branch protection or merge queues, require `Build and test (amd64)` in branch rules.

@@ -41,7 +41,7 @@ for mode in install cached; do
         network=bridge
         cache_mount=/workspace
     fi
-    for fixture_dir in /tests /tests/java17; do
+    for fixture_dir in /tests /tests/java17 /tests/java25; do
         docker run --rm --network "$network" \
             --mount "type=volume,src=$cache_volume,dst=$cache_mount" \
             --mount "type=bind,src=$PWD/tests,dst=/tests,readonly" \
