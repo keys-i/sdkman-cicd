@@ -42,7 +42,7 @@ javac -d "$build_dir" "$build_dir/Hello.java"
 [[ $(java -cp "$build_dir" Hello) == "${java_version%-*}: café 世界" ]]
 
 printf 'fun main() { println("Kotlin ready: café 世界") }\n' > "$build_dir/Hello.kt"
-kotlinc "$build_dir/Hello.kt" -include-runtime -d "$build_dir/hello.jar"
+kotlinc "$build_dir/Hello.kt" -jvm-target "${java_version%%.*}" -include-runtime -d "$build_dir/hello.jar"
 [[ $(java -jar "$build_dir/hello.jar") == 'Kotlin ready: café 世界' ]]
 
 printf 'Java and Kotlin installation, selection, compilation, and execution passed\n'
