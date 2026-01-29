@@ -39,10 +39,12 @@ class Hello {
 }
 JAVA
 javac -d "$build_dir" "$build_dir/Hello.java"
-[[ $(java -cp "$build_dir" Hello) == "${java_version%-*}: café 世界" ]]
+java_output=$(java -cp "$build_dir" Hello)
+[[ "$java_output" == "${java_version%-*}: café 世界" ]] || exit 1
 
 printf 'fun main() { println("Kotlin ready: café 世界") }\n' > "$build_dir/Hello.kt"
 kotlinc "$build_dir/Hello.kt" -jvm-target "${java_version%%.*}" -include-runtime -d "$build_dir/hello.jar"
-[[ $(java -jar "$build_dir/hello.jar") == 'Kotlin ready: café 世界' ]]
+kotlin_output=$(java -jar "$build_dir/hello.jar")
+[[ "$kotlin_output" == 'Kotlin ready: café 世界' ]] || exit 1
 
 printf 'Java and Kotlin installation, selection, compilation, and execution passed\n'
