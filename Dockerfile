@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim@sha256:40b107342c492725bc7aacbe93a49945445191ae364184a6d24fedb28172f6f7
+FROM debian:trixie-slim@sha256:f6e2cfac5cf956ea044b4bd75e6397b4372ad88fe00908045e9a0d21712ae3ba
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
