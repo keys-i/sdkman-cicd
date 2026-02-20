@@ -7,6 +7,7 @@ RUN apt-get -o Acquire::Retries=3 --error-on=any update \
         bash \
         ca-certificates \
         curl \
+        git \
         libdigest-sha-perl \
         unzip \
         zip \

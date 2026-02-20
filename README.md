@@ -1,6 +1,6 @@
 # SDKMAN CI image
 
-A Linux amd64 CI image with SDKMAN and no preinstalled JDK. Keep Java, Kotlin,
+A Linux amd64 CI image with SDKMAN, Git, and no preinstalled JDK. Keep Java, Kotlin,
 and other SDK versions in your application's `.sdkmanrc`.
 
 ## Quick start

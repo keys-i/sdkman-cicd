@@ -18,6 +18,7 @@ done
 [[ "${sdkman_curl_retry:-}" == 3 ]]
 [[ "${sdkman_curl_retry_max_time:-}" == 60 ]]
 command -v shasum > /dev/null
+command -v git > /dev/null
 
 # Prevent inherited functions from masking missing shell startup hooks
 (
