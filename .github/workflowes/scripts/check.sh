@@ -9,3 +9,4 @@ bash tests/release-tag.sh
 bash tests/dockerhub-repository.sh
 bash tests/publish-image.sh
 bash tests/check-image.sh
+bash tests/scan-image.sh

@@ -109,8 +109,9 @@ Move any existing `DOCKERHUB_TOKEN` repository secret into this environment.
 Private GitHub repositories require Pro, Team, or Enterprise for environments.
 
 Publishing a release, including a prerelease, triggers the
-[release workflow](.github/workflows/release.yml). It validates the tag and destination format, builds
-and tests the image before the `dockerhub` publish job starts. That job checks the
+[release workflow](.github/workflows/release.yml). It validates the tag and destination format, builds,
+tests, and scans the image before the `dockerhub` publish job starts. Trivy blocks
+publishing on fixable HIGH/CRITICAL vulnerabilities or scanner errors. That job checks the
 archive checksum before loading it, verifies its image ID, then pushes
 `docker.io/<namespace>/<repository>:<release-tag>`. Artifacts expire after seven days;
 rerun all jobs if one expires while waiting for an environment rule.
@@ -128,7 +129,8 @@ retrying.
 
 [Dependabot](.github/dependabot.yml) checks workflow Actions and the Docker base weekly,
 grouping artifact upload/download version updates. Update `examples/` and the
-pinned Actionlint image manually; they are outside its configured coverage.
+pinned Actionlint and [Trivy](https://trivy.dev/docs/v0.68/guide/references/configuration/cli/trivy_image/)
+images manually; they are outside its configured coverage.
 The Debian 13 base is pinned by digest. Builds still fetch current Debian packages
 and SDKMAN, so these tooling stages are not historical reproductions. Later
 checkpoints target Action and SDKMAN pinning, multi-platform validation,
