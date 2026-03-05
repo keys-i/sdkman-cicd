@@ -74,3 +74,9 @@ jobs:
         env:
           EXPECTED_PLATFORM: linux/${{ env.IMAGE_ARCH }}
         run: bash .github/workflowes/scripts/check-image.sh sdkman-ci:test
+
+      - name: Scan the tested image
+        timeout-minutes: 10
+        run: |
+          docker image save --output "$RUNNER_TEMP/test-image.tar" sdkman-ci:test
+          bash .github/workflowes/scripts/scan-image.sh "$RUNNER_TEMP/test-image.tar"

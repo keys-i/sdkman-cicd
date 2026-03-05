@@ -86,6 +86,7 @@ then removes its temporary cache volume. It installs Java 17, 21, and 25 with Ko
 2.0.20 and 2.3.10, compiles programs, and tests cache reuse offline at a different path.
 [PR validation](.github/workflows/pr.yml)
 and releases use the same command. PRs and merge queues need no registry credentials.
+All validation builds also scan the tested image using the release vulnerability policy.
 For branch protection or merge queues, require `Build and test (amd64)` in branch rules.
 A weekly uncached build checks upstream changes on amd64, plus ARM64 in public repositories.
 Manual runs of
