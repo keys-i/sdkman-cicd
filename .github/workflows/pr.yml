@@ -76,7 +76,19 @@ jobs:
         run: bash .github/workflowes/scripts/check-image.sh sdkman-ci:test
 
       - name: Scan the tested image
+        id: scan
         timeout-minutes: 10
+        shell: bash
         run: |
           docker image save --output "$RUNNER_TEMP/test-image.tar" sdkman-ci:test
-          bash .github/workflowes/scripts/scan-image.sh "$RUNNER_TEMP/test-image.tar"
+          bash .github/workflowes/scripts/scan-image.sh "$RUNNER_TEMP/test-image.tar" 2>&1 | tee "$RUNNER_TEMP/scan-report.txt"
+
+      - name: Upload the scan report
+        if: ${{ !cancelled() && (steps.scan.outcome == 'success' || steps.scan.outcome == 'failure') }}
+        uses: actions/upload-artifact@v4
+        timeout-minutes: 5
+        with:
+          name: scan-report-${{ matrix.architecture }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/scan-report.txt
+          if-no-files-found: warn
+          retention-days: 7
