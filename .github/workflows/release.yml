@@ -121,7 +121,7 @@ jobs:
     name: Publish tested release
     needs: build-test
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
     environment: dockerhub
     env:
       PUBLISH_IMAGE: ${{ needs.build-test.outputs.publish-image }}
@@ -152,6 +152,22 @@ jobs:
         run: |
           printf '%s  release-image.tar\n' "$EXPECTED_ARCHIVE_SHA256" | sha256sum --check --strict
           docker image load --input release-image.tar
+
+      - name: Scan again before publishing
+        id: scan
+        timeout-minutes: 10
+        shell: bash
+        run: bash .github/workflowes/scripts/scan-image.sh "$RUNNER_TEMP/release-image.tar" 2>&1 | tee "$RUNNER_TEMP/scan-report.txt"
+
+      - name: Upload the publish scan report
+        if: ${{ !cancelled() && (steps.scan.outcome == 'success' || steps.scan.outcome == 'failure') }}
+        uses: actions/upload-artifact@v4
+        timeout-minutes: 5
+        with:
+          name: scan-report-publish-amd64-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/scan-report.txt
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Tag the tested image for Docker Hub
         run: docker image tag "$EXPECTED_IMAGE_ID" "$PUBLISH_IMAGE"

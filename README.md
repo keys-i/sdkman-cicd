@@ -118,6 +118,8 @@ archive checksum before loading it, verifies its image ID, then pushes
 `docker.io/<namespace>/<repository>:<release-tag>`. Artifacts expire after seven days;
 rerun all jobs if one expires while waiting for an environment rule.
 Publishing uses the destination recorded by the build job, including on publish-only reruns.
+The publish job scans again after environment approval and before Docker Hub login,
+including on reruns; new fixable HIGH/CRITICAL findings block the push.
 Release builds bypass layer caches to refresh Debian packages and SDKMAN.
 The full tag is preserved. Tags such as `v1.2.3` are valid; spaces, slashes, and
 `+` are rejected by the [tag validator](.github/workflowes/scripts/validate-release-tag.sh).
