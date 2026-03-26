@@ -10,3 +10,4 @@ bash tests/dockerhub-repository.sh
 bash tests/publish-image.sh
 bash tests/check-image.sh
 bash tests/scan-image.sh
+bash tests/sbom-image.sh

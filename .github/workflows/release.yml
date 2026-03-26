@@ -18,7 +18,7 @@ jobs:
   build-test:
     name: Build and test release (amd64)
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       PUBLISH_IMAGE: docker.io/${{ vars.DOCKERHUB_REPOSITORY }}:${{ github.event.release.tag_name }}
     outputs:
@@ -106,6 +106,19 @@ jobs:
           name: scan-report-amd64-${{ github.run_attempt }}
           path: ${{ runner.temp }}/scan-report.txt
           if-no-files-found: warn
+          retention-days: 7
+
+      - name: Generate the release SBOM
+        timeout-minutes: 10
+        run: bash .github/workflowes/scripts/sbom-image.sh "$RUNNER_TEMP/release-image.tar" > "$RUNNER_TEMP/sbom.cdx.json"
+
+      - name: Upload the release SBOM
+        uses: actions/upload-artifact@v4
+        timeout-minutes: 5
+        with:
+          name: release-sbom-amd64-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/sbom.cdx.json
+          if-no-files-found: error
           retention-days: 7
 
       - name: Upload the tested image

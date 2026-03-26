@@ -121,6 +121,8 @@ Publishing uses the destination recorded by the build job, including on publish-
 The publish job scans again after environment approval and before Docker Hub login,
 including on reruns; new fixable HIGH/CRITICAL findings block the push.
 Release builds bypass layer caches to refresh Debian packages and SDKMAN.
+They retain a [CycloneDX SBOM](https://trivy.dev/docs/v0.68/guide/supply-chain/sbom/)
+of the tested image in a seven-day `release-sbom-*` artifact.
 The full tag is preserved. Tags such as `v1.2.3` are valid; spaces, slashes, and
 `+` are rejected by the [tag validator](.github/workflowes/scripts/validate-release-tag.sh).
 
@@ -138,4 +140,4 @@ images manually; they are outside its configured coverage.
 The Debian 13 base is pinned by digest. Builds still fetch current Debian packages
 and SDKMAN, so these tooling stages are not historical reproductions. Later
 checkpoints target Action and SDKMAN pinning, multi-platform validation,
-provenance, and SBOMs through 2025–2026.
+and provenance through 2025–2026.
