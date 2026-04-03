@@ -66,7 +66,7 @@ changes and saves validated SDKs before the build when there was no exact cache 
 
 ## Local checks
 
-From this repository, run the offline checks with Bash and ShellCheck:
+From this repository, run the offline checks with Bash, ShellCheck, and jq:
 
 ```sh
 bash .github/workflowes/scripts/check.sh
@@ -122,7 +122,8 @@ The publish job scans again after environment approval and before Docker Hub log
 including on reruns; new fixable HIGH/CRITICAL findings block the push.
 Release builds bypass layer caches to refresh Debian packages and SDKMAN.
 They retain a [CycloneDX SBOM](https://trivy.dev/docs/v0.68/guide/supply-chain/sbom/)
-of the tested image in a seven-day `release-sbom-*` artifact.
+of the tested image in a seven-day `release-sbom-*` artifact, after checking its
+image ID and nonempty component list.
 The full tag is preserved. Tags such as `v1.2.3` are valid; spaces, slashes, and
 `+` are rejected by the [tag validator](.github/workflowes/scripts/validate-release-tag.sh).
 

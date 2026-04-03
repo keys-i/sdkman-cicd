@@ -110,7 +110,9 @@ jobs:
 
       - name: Generate the release SBOM
         timeout-minutes: 10
-        run: bash .github/workflowes/scripts/sbom-image.sh "$RUNNER_TEMP/release-image.tar" > "$RUNNER_TEMP/sbom.cdx.json"
+        env:
+          EXPECTED_IMAGE_ID: ${{ steps.export.outputs.image-id }}
+        run: bash .github/workflowes/scripts/sbom-image.sh "$RUNNER_TEMP/release-image.tar" "$EXPECTED_IMAGE_ID" > "$RUNNER_TEMP/sbom.cdx.json"
 
       - name: Upload the release SBOM
         uses: actions/upload-artifact@v4
