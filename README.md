@@ -124,6 +124,8 @@ Release builds bypass layer caches to refresh Debian packages and SDKMAN.
 They retain a [CycloneDX SBOM](https://trivy.dev/docs/v0.68/guide/supply-chain/sbom/)
 of the tested image in a seven-day `release-sbom-*` artifact, after checking its
 image ID and nonempty component list.
+The artifact includes a SHA-256 file, also recorded in the build summary. After
+extracting both files, verify with `sha256sum --check sbom.cdx.json.sha256`.
 The full tag is preserved. Tags such as `v1.2.3` are valid; spaces, slashes, and
 `+` are rejected by the [tag validator](.github/workflowes/scripts/validate-release-tag.sh).
 

@@ -114,12 +114,21 @@ jobs:
           EXPECTED_IMAGE_ID: ${{ steps.export.outputs.image-id }}
         run: bash .github/workflowes/scripts/sbom-image.sh "$RUNNER_TEMP/release-image.tar" "$EXPECTED_IMAGE_ID" > "$RUNNER_TEMP/sbom.cdx.json"
 
+      - name: Record the release SBOM checksum
+        working-directory: ${{ runner.temp }}
+        run: |
+          sha256sum sbom.cdx.json > sbom.cdx.json.sha256
+          printf '### Release SBOM\n\nSHA-256:\n\n    %s\n' \
+            "$(cat sbom.cdx.json.sha256)" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload the release SBOM
         uses: actions/upload-artifact@v4
         timeout-minutes: 5
         with:
           name: release-sbom-amd64-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/sbom.cdx.json
+          path: |
+            ${{ runner.temp }}/sbom.cdx.json
+            ${{ runner.temp }}/sbom.cdx.json.sha256
           if-no-files-found: error
           retention-days: 7
 
