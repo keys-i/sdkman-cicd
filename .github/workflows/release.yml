@@ -145,7 +145,7 @@ jobs:
     name: Publish tested release
     needs: build-test
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 35
     environment: dockerhub
     env:
       PUBLISH_IMAGE: ${{ needs.build-test.outputs.publish-image }}
@@ -205,6 +205,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           logout: true
 
-      - name: Push the tested release image
-        timeout-minutes: 5
+      - name: Push and verify the tested release image
+        timeout-minutes: 10
         run: bash .github/workflowes/scripts/publish-image.sh

@@ -30,5 +30,13 @@ if [[ ! $digest =~ ^sha256:[0-9a-f]{64}$ ]]; then
     exit 1
 fi
 
-printf '### Published image\n\nTag:\n\n    %s\n\nPin in CI:\n\n    %s@%s\n' \
-    "$PUBLISH_IMAGE" "${PUBLISH_IMAGE%:*}" "$digest" >> "$GITHUB_STEP_SUMMARY"
+published_ref="${PUBLISH_IMAGE%:*}@$digest"
+docker image pull "$published_ref"
+published_image_id=$(docker image inspect --format '{{.Id}}' "$published_ref")
+if [[ "$published_image_id" != "$EXPECTED_IMAGE_ID" ]]; then
+    printf 'ERROR: published image differs from the tested image; check the push log\n' >&2
+    exit 1
+fi
+
+printf '### Published image\n\nTag:\n\n    %s\n\nPin in CI:\n\n    %s\n' \
+    "$PUBLISH_IMAGE" "$published_ref" >> "$GITHUB_STEP_SUMMARY"

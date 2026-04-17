@@ -115,7 +115,8 @@ Publishing a release, including a prerelease, triggers the
 tests, and scans the image before the `dockerhub` publish job starts. Trivy blocks
 publishing on fixable HIGH/CRITICAL vulnerabilities or scanner errors. That job checks the
 archive checksum before loading it, verifies its image ID, then pushes
-`docker.io/<namespace>/<repository>:<release-tag>`. Artifacts expire after seven days;
+`docker.io/<namespace>/<repository>:<release-tag>`. It pulls the published digest
+and checks that its image ID matches the tested image. Artifacts expire after seven days;
 rerun all jobs if one expires while waiting for an environment rule.
 Publishing uses the destination recorded by the build job, including on publish-only reruns.
 The publish job scans again after environment approval and before Docker Hub login,
@@ -130,8 +131,8 @@ The full tag is preserved. Tags such as `v1.2.3` are valid; spaces, slashes, and
 `+` are rejected by the [tag validator](.github/workflowes/scripts/validate-release-tag.sh).
 
 The job summary provides the digest reference for pinning CI images. Release
-images also carry version, source commit, and repository labels. If digest
-reporting fails, the image may already be published; check the push log before
+images also carry version, source commit, and repository labels. If verification or
+digest reporting fails, the image may already be published; check the push log before
 retrying.
 
 ## Modernization
