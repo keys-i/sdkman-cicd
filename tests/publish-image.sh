@@ -7,6 +7,7 @@ trap 'rm -rf -- "$test_dir"' EXIT
 export BASH_ENV=/dev/null
 export PUBLISH_IMAGE=docker.io/example/sdkman-ci:v1.2.3
 export GITHUB_STEP_SUMMARY="$test_dir/summary"
+export PUBLISH_METADATA="$test_dir/published-image.json"
 export PUSH_CALLS="$test_dir/push-calls"
 export PUSH_OUTPUT PUSH_STATUS=0
 printf -v digest 'sha256:%064d' 0
@@ -54,6 +55,9 @@ grep -Fxq "    $PUBLISH_IMAGE" "$GITHUB_STEP_SUMMARY"
 grep -Fxq "    docker.io/example/sdkman-ci@$digest" "$GITHUB_STEP_SUMMARY"
 [[ $(cat "$PUSH_CALLS") == $'inspect\npush\npull\nverify' ]] || exit 1
 successful_summary=$(cat "$GITHUB_STEP_SUMMARY")
+jq --exit-status --arg tag "$PUBLISH_IMAGE" --arg image "$EXPECTED_PUBLISHED_REF" \
+    --arg image_id "$EXPECTED_IMAGE_ID" \
+    '. == {tag: $tag, image: $image, image_id: $image_id}' "$PUBLISH_METADATA" > /dev/null
 
 : > "$PUSH_CALLS"
 if EXPECTED_IMAGE_ID='' bash "$project_dir/.github/workflowes/scripts/publish-image.sh" > "$test_dir/output" 2>&1; then
@@ -104,6 +108,15 @@ for summary in "$test_dir" "$test_dir/missing/summary"; do
     fi
 done
 
+: > "$PUSH_CALLS"
+for metadata in '' "$test_dir" "$test_dir/missing/published-image.json"; do
+    if PUBLISH_METADATA="$metadata" bash "$project_dir/.github/workflowes/scripts/publish-image.sh" > "$test_dir/output" 2>&1; then
+        printf 'ERROR: accepted an unusable metadata path\n' >&2
+        exit 1
+    fi
+    [[ ! -s "$PUSH_CALLS" ]] || exit 1
+done
+
 for PUSH_OUTPUT in '' 'layer: Pushed' \
     'v1.2.3: digest: sha256:bad size: 1234' \
     "other-tag: digest: $digest size: 1234" \
@@ -114,7 +127,7 @@ for PUSH_OUTPUT in '' 'layer: Pushed' \
         printf 'ERROR: accepted missing, invalid, or ambiguous digest\n' >&2
         exit 1
     fi
-    [[ ! -s "$GITHUB_STEP_SUMMARY" ]]
+    [[ ! -s "$GITHUB_STEP_SUMMARY" && ! -s "$PUBLISH_METADATA" ]] || exit 1
     [[ $(cat "$PUSH_CALLS") == $'inspect\npush' ]] || exit 1
 done
 
@@ -126,7 +139,7 @@ if bash "$project_dir/.github/workflowes/scripts/publish-image.sh" > "$test_dir/
     printf 'ERROR: accepted failed push\n' >&2
     exit 1
 fi
-[[ ! -s "$GITHUB_STEP_SUMMARY" ]]
+[[ ! -s "$GITHUB_STEP_SUMMARY" && ! -s "$PUBLISH_METADATA" ]] || exit 1
 [[ $(cat "$PUSH_CALLS") == $'inspect\npush' ]] || exit 1
 
 PUSH_STATUS=0
@@ -134,7 +147,7 @@ for PULLED_IMAGE_ID in '' "$digest"; do
     : > "$PUSH_CALLS"
     status=0
     bash "$project_dir/.github/workflowes/scripts/publish-image.sh" > "$test_dir/output" 2>&1 || status=$?
-    [[ $status == 1 && ! -s "$GITHUB_STEP_SUMMARY" ]] || exit 1
+    [[ $status == 1 && ! -s "$GITHUB_STEP_SUMMARY" && ! -s "$PUBLISH_METADATA" ]] || exit 1
     [[ $(cat "$PUSH_CALLS") == $'inspect\npush\npull\nverify' ]] || exit 1
     grep -Fq 'published image differs from the tested image' "$test_dir/output"
 done
@@ -143,13 +156,13 @@ PULLED_IMAGE_ID=$EXPECTED_IMAGE_ID
 : > "$PUSH_CALLS"
 status=0
 PULL_STATUS=31 bash "$project_dir/.github/workflowes/scripts/publish-image.sh" > "$test_dir/output" 2>&1 || status=$?
-[[ $status == 31 && ! -s "$GITHUB_STEP_SUMMARY" ]] || exit 1
+[[ $status == 31 && ! -s "$GITHUB_STEP_SUMMARY" && ! -s "$PUBLISH_METADATA" ]] || exit 1
 [[ $(cat "$PUSH_CALLS") == $'inspect\npush\npull' ]] || exit 1
 
 : > "$PUSH_CALLS"
 status=0
 VERIFY_STATUS=32 bash "$project_dir/.github/workflowes/scripts/publish-image.sh" > "$test_dir/output" 2>&1 || status=$?
-[[ $status == 32 && ! -s "$GITHUB_STEP_SUMMARY" ]] || exit 1
+[[ $status == 32 && ! -s "$GITHUB_STEP_SUMMARY" && ! -s "$PUBLISH_METADATA" ]] || exit 1
 [[ $(cat "$PUSH_CALLS") == $'inspect\npush\npull\nverify' ]] || exit 1
 
 printf 'Release image publishing checks passed\n'

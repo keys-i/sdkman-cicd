@@ -5,12 +5,15 @@ export LC_ALL=C
 : "${PUBLISH_IMAGE:?PUBLISH_IMAGE must name the tested release image}"
 : "${EXPECTED_IMAGE_ID:?EXPECTED_IMAGE_ID must identify the tested release image}"
 : "${GITHUB_STEP_SUMMARY:?GITHUB_STEP_SUMMARY must name the job summary file}"
+: "${PUBLISH_METADATA:?PUBLISH_METADATA must name the publication metadata file}"
 if [[ "$PUBLISH_IMAGE" != *:* || "$PUBLISH_IMAGE" == *@* ]]; then
     printf 'PUBLISH_IMAGE must include an explicit image tag and no digest\n' >&2
     exit 1
 fi
 bash "$(dirname -- "${BASH_SOURCE[0]}")/validate-release-tag.sh" "${PUBLISH_IMAGE##*:}"
 : >> "$GITHUB_STEP_SUMMARY"
+command -v jq > /dev/null
+: > "$PUBLISH_METADATA"
 
 image_id=$(docker image inspect --format '{{.Id}}' "$PUBLISH_IMAGE")
 if [[ "$image_id" != "$EXPECTED_IMAGE_ID" ]]; then
@@ -37,6 +40,10 @@ if [[ "$published_image_id" != "$EXPECTED_IMAGE_ID" ]]; then
     printf 'ERROR: published image differs from the tested image; check the push log\n' >&2
     exit 1
 fi
+
+jq --null-input --arg tag "$PUBLISH_IMAGE" --arg image "$published_ref" \
+    --arg image_id "$EXPECTED_IMAGE_ID" \
+    '{tag: $tag, image: $image, image_id: $image_id}' > "$PUBLISH_METADATA"
 
 printf '### Published image\n\nTag:\n\n    %s\n\nPin in CI:\n\n    %s\n' \
     "$PUBLISH_IMAGE" "$published_ref" >> "$GITHUB_STEP_SUMMARY"

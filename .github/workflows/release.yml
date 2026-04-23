@@ -145,7 +145,7 @@ jobs:
     name: Publish tested release
     needs: build-test
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 40
     environment: dockerhub
     env:
       PUBLISH_IMAGE: ${{ needs.build-test.outputs.publish-image }}
@@ -207,4 +207,15 @@ jobs:
 
       - name: Push and verify the tested release image
         timeout-minutes: 10
+        env:
+          PUBLISH_METADATA: ${{ runner.temp }}/published-image.json
         run: bash .github/workflowes/scripts/publish-image.sh
+
+      - name: Upload the publication metadata
+        uses: actions/upload-artifact@v4
+        timeout-minutes: 5
+        with:
+          name: published-image-amd64-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/published-image.json
+          if-no-files-found: error
+          retention-days: 7

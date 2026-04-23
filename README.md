@@ -130,10 +130,11 @@ extracting both files, verify with `sha256sum --check sbom.cdx.json.sha256`.
 The full tag is preserved. Tags such as `v1.2.3` are valid; spaces, slashes, and
 `+` are rejected by the [tag validator](.github/workflowes/scripts/validate-release-tag.sh).
 
-The job summary provides the digest reference for pinning CI images. Release
-images also carry version, source commit, and repository labels. If verification or
-digest reporting fails, the image may already be published; check the push log before
-retrying.
+The job summary provides the digest reference for pinning CI images. A seven-day
+`published-image-*` artifact also records the tag, digest reference, and image ID
+in `published-image.json`. Release images carry version, source commit, and
+repository labels. If verification or digest reporting fails, the image may already
+be published; check the push log before retrying.
 
 ## Modernization
 
