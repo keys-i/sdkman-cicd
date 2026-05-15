@@ -105,9 +105,10 @@ job. It checks the archive checksum and image ID, rescans before login, and push
 or scanner errors block publishing. A digest pull verifies the published image ID.
 
 Tags are preserved (`v1.2.3` is valid; spaces, slashes, and `+` are rejected).
-The job summary supplies the digest for CI pinning. Seven-day artifacts include
-scan reports (also on scan failure), the tested archive, a CycloneDX SBOM with
-SHA-256 sidecar, and `published-image.json` with the tag, digest, and image ID.
+The job summary supplies the digest for CI pinning. Scan reports (also on scan
+failure) and the tested archive expire after seven days. The CycloneDX SBOM with
+SHA-256 sidecar and `published-image.json` (tag, digest, image ID) follow the
+repository's artifact retention policy.
 Verify extracted SBOM files with `sha256sum --check sbom.cdx.json.sha256`.
 
 If artifacts expire during an environment wait, rerun all jobs. Publish-only

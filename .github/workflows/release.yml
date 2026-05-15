@@ -130,7 +130,6 @@ jobs:
             ${{ runner.temp }}/sbom.cdx.json
             ${{ runner.temp }}/sbom.cdx.json.sha256
           if-no-files-found: error
-          retention-days: 7
 
       - name: Upload the tested image
         uses: actions/upload-artifact@v4
@@ -218,4 +217,3 @@ jobs:
           name: published-image-amd64-${{ github.run_attempt }}
           path: ${{ runner.temp }}/published-image.json
           if-no-files-found: error
-          retention-days: 7
