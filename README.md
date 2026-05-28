@@ -56,8 +56,8 @@ build wrapper at the application root.
 | [GitLab CI](examples/gitlab-ci.yml) | `.gitlab-ci.yml` | Set `image.name` directly in the file so image changes invalidate its cache |
 
 Both examples use amd64 containers as root and install SDKs only if `sdk env`
-fails. Adapt GitLab's hosted Docker runner tag for your runner and keep
-protected-branch caches separate.
+fails. The GitHub example also checks merge queues. Adapt GitLab's hosted Docker
+runner tag for your runner and keep protected-branch caches separate.
 
 ## Local checks
 
