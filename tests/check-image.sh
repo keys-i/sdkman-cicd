@@ -49,6 +49,7 @@ docker() {
                     /tests) ;;
                     /tests/java17) step=$step-java17 ;;
                     /tests/java25) step=$step-java25 ;;
+                    /tests/java26) step=$step-java26 ;;
                     *) return 99 ;;
                 esac
                 [[ "${13}" == --pull=never ]] || return 99
@@ -77,22 +78,24 @@ export -f docker
 
 # Exercise invocation outside the repository as well as failure cleanup
 cd "$test_dir"
-for IMAGE_CHECK_FAIL in '' smoke root-smoke create install install-java17 install-java25 cached cached-java17 cached-java25 cleanup; do
+for IMAGE_CHECK_FAIL in '' smoke root-smoke create install install-java17 install-java25 install-java26 cached cached-java17 cached-java25 cached-java26 cleanup; do
     : > "$IMAGE_CHECK_CALLS"
     status=0
     bash "$project_dir/.github/workflowes/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1 || status=$?
     case "$IMAGE_CHECK_FAIL" in
-        '') expected_status=0; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ncached\ncached-java17\ncached-java25\ncleanup' ;;
+        '') expected_status=0; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ninstall-java26\ncached\ncached-java17\ncached-java25\ncached-java26\ncleanup' ;;
         smoke) expected_status=37; expected=smoke ;;
         root-smoke) expected_status=37; expected=$'smoke\nroot-smoke' ;;
         create) expected_status=37; expected=$'smoke\nroot-smoke\ncreate' ;;
         install) expected_status=37; expected=$'smoke\nroot-smoke\ncreate\ninstall\ncleanup' ;;
         install-java17) expected_status=37; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ncleanup' ;;
         install-java25) expected_status=37; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ncleanup' ;;
-        cached) expected_status=37; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ncached\ncleanup' ;;
-        cached-java17) expected_status=37; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ncached\ncached-java17\ncleanup' ;;
-        cached-java25) expected_status=37; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ncached\ncached-java17\ncached-java25\ncleanup' ;;
-        cleanup) expected_status=1; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ncached\ncached-java17\ncached-java25\ncleanup' ;;
+        install-java26) expected_status=37; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ninstall-java26\ncleanup' ;;
+        cached) expected_status=37; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ninstall-java26\ncached\ncleanup' ;;
+        cached-java17) expected_status=37; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ninstall-java26\ncached\ncached-java17\ncleanup' ;;
+        cached-java25) expected_status=37; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ninstall-java26\ncached\ncached-java17\ncached-java25\ncleanup' ;;
+        cached-java26) expected_status=37; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ninstall-java26\ncached\ncached-java17\ncached-java25\ncached-java26\ncleanup' ;;
+        cleanup) expected_status=1; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ninstall-java26\ncached\ncached-java17\ncached-java25\ncached-java26\ncleanup' ;;
     esac
     [[ "$status" == "$expected_status" ]] || exit 1
     [[ $(cat "$IMAGE_CHECK_CALLS") == "$expected" ]] || exit 1
@@ -112,7 +115,7 @@ for IMAGE_CHECK_PLATFORM in linux/amd64 linux/arm64; do
     EXPECTED_PLATFORM=$IMAGE_CHECK_PLATFORM
     : > "$IMAGE_CHECK_CALLS"
     bash "$project_dir/.github/workflowes/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1
-    [[ $(cat "$IMAGE_CHECK_CALLS") == $'inspect\nsmoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ncached\ncached-java17\ncached-java25\ncleanup' ]]
+    [[ $(cat "$IMAGE_CHECK_CALLS") == $'inspect\nsmoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ninstall-java26\ncached\ncached-java17\ncached-java25\ncached-java26\ncleanup' ]] || exit 1
 done
 
 EXPECTED_PLATFORM=linux/amd64
