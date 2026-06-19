@@ -30,3 +30,8 @@ sdkman-test:
     - test -s .sdkmanrc
     - bash -e -o pipefail -c 'sdk env || sdk env install'
     - bash -e -o pipefail -c 'sdk env && ./gradlew test'
+  artifacts:
+    when: always
+    expire_in: 7 days
+    reports:
+      junit: '**/build/test-results/test/*.xml'
