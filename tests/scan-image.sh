@@ -28,6 +28,8 @@ for SCAN_STATUS in 0 1 23; do
     grep -Fxq -- '--ignore-unfixed' "$SCAN_CALLS"
     grep -Fxq -- '--disable-telemetry' "$SCAN_CALLS"
     args=$(cat "$SCAN_CALLS")
+    [[ $args == $'run\n--rm\n--cap-drop=ALL\n--security-opt=no-new-privileges\n--user\n'* ]] || exit 1
+    [[ $args == *$'--user\n'"$(id -u):$(id -g)"$'\n--env\nTRIVY_CACHE_DIR=/tmp/trivy\n--mount\n'* ]] || exit 1
     [[ $args == *$'--input\n/image.tar\n'* &&
        $args == *$'--scanners\nvuln\n'* &&
        $args == *$'--severity\nHIGH,CRITICAL\n'* &&

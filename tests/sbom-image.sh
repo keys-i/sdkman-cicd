@@ -39,6 +39,8 @@ for SBOM_STATUS in 0 23; do
     grep -Fxq 'Generator diagnostics' "$test_dir/errors"
     grep -Fxq "type=bind,src=$archive,dst=/image.tar,readonly" "$SBOM_CALLS"
     args=$(cat "$SBOM_CALLS")
+    [[ $args == $'run\n--rm\n--cap-drop=ALL\n--security-opt=no-new-privileges\n--user\n'* ]] || exit 1
+    [[ $args == *$'--user\n'"$(id -u):$(id -g)"$'\n--env\nTRIVY_CACHE_DIR=/tmp/trivy\n--mount\n'* ]] || exit 1
     [[ $args == *$'--input\n/image.tar\n'* && $args == *$'--format\ncyclonedx\n'* ]] || exit 1
 done
 
