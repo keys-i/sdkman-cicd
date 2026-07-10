@@ -4,6 +4,9 @@ set -euo pipefail
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.."
 
 docker run --rm --network none \
+    --cap-drop=ALL \
+    --security-opt=no-new-privileges \
+    --user "$(id -u):$(id -g)" \
     --mount "type=bind,src=$PWD/.github/workflows,dst=/repo/.github/workflows,readonly" \
     --mount "type=bind,src=$PWD/examples,dst=/repo/examples,readonly" \
     --workdir /repo \
