@@ -10,6 +10,8 @@ export IMAGE_CHECK_TESTS="$project_dir/tests"
 export IMAGE_CHECK_FAIL=''
 export IMAGE_CHECK_CLEANUP_STATUS=0
 export IMAGE_CHECK_PLATFORM=linux/amd64
+printf -v IMAGE_CHECK_ID 'sha256:%064d' 1
+export IMAGE_CHECK_ID
 unset EXPECTED_PLATFORM
 
 # Intercept every Docker call so these checks need no daemon or downloads
@@ -17,8 +19,18 @@ docker() {
     local step network
     case "$1 $2" in
         'image inspect')
-            [[ $# == 5 && "$3" == --format && "$4" == '{{.Os}}/{{.Architecture}}' && "$5" == sdkman-ci:check ]] || return 99
-            step=inspect
+            [[ $# == 5 && "$3" == --format ]] || return 99
+            case "$4" in
+                '{{.Id}}')
+                    [[ "$5" == sdkman-ci:check ]] || return 99
+                    step=resolve
+                    ;;
+                '{{.Os}}/{{.Architecture}}')
+                    [[ "$5" == "$IMAGE_CHECK_ID" ]] || return 99
+                    step=inspect
+                    ;;
+                *) return 99 ;;
+            esac
             ;;
         'run --rm')
             step=${*: -1}
@@ -32,7 +44,7 @@ docker() {
                     [[ $# == 11 && "${11}" == 1000 ]] || return 99
                 fi
                 [[ "${*: -5:1}" == --pull=never ]] || return 99
-                [[ "${*: -4:1}" == sdkman-ci:check ]] || return 99
+                [[ "${*: -4:1}" == "$IMAGE_CHECK_ID" ]] || return 99
                 [[ "$6" == "type=bind,src=$IMAGE_CHECK_TESTS,dst=/tests,readonly" ]] || return 99
             else
                 [[ "$step" == install || "$step" == cached ]] || return 99
@@ -53,7 +65,7 @@ docker() {
                     *) return 99 ;;
                 esac
                 [[ "${13}" == --pull=never ]] || return 99
-                [[ "${14}" == sdkman-ci:check ]] || return 99
+                [[ "${14}" == "$IMAGE_CHECK_ID" ]] || return 99
                 [[ "${15}" == bash && "${16}" == /tests/integration.sh ]] || return 99
             fi
             [[ "$3" == --network && "$4" == "$network" ]] || return 99
@@ -72,17 +84,19 @@ docker() {
     [[ "$step" != "$IMAGE_CHECK_FAIL" ]] || return 37
     if [[ "$step" == cleanup ]]; then return "$IMAGE_CHECK_CLEANUP_STATUS"; fi
     if [[ "$step" == create ]]; then printf 'check-volume\n'; fi
+    if [[ "$step" == resolve ]]; then printf '%s\n' "$IMAGE_CHECK_ID"; fi
     if [[ "$step" == inspect ]]; then printf '%s\n' "$IMAGE_CHECK_PLATFORM"; fi
 }
 export -f docker
 
 # Exercise invocation outside the repository as well as failure cleanup
 cd "$test_dir"
-for IMAGE_CHECK_FAIL in '' smoke root-smoke create install install-java17 install-java25 install-java26 cached cached-java17 cached-java25 cached-java26 cleanup; do
+for IMAGE_CHECK_FAIL in '' resolve smoke root-smoke create install install-java17 install-java25 install-java26 cached cached-java17 cached-java25 cached-java26 cleanup; do
     : > "$IMAGE_CHECK_CALLS"
     status=0
     bash "$project_dir/.github/workflowes/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1 || status=$?
     case "$IMAGE_CHECK_FAIL" in
+        resolve) expected_status=37; expected=resolve ;;
         '') expected_status=0; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ninstall-java26\ncached\ncached-java17\ncached-java25\ncached-java26\ncleanup' ;;
         smoke) expected_status=37; expected=smoke ;;
         root-smoke) expected_status=37; expected=$'smoke\nroot-smoke' ;;
@@ -97,6 +111,9 @@ for IMAGE_CHECK_FAIL in '' smoke root-smoke create install install-java17 instal
         cached-java26) expected_status=37; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ninstall-java26\ncached\ncached-java17\ncached-java25\ncached-java26\ncleanup' ;;
         cleanup) expected_status=1; expected=$'smoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ninstall-java26\ncached\ncached-java17\ncached-java25\ncached-java26\ncleanup' ;;
     esac
+    if [[ "$IMAGE_CHECK_FAIL" != resolve ]]; then
+        expected=$'resolve\n'"$expected"
+    fi
     [[ "$status" == "$expected_status" ]] || exit 1
     [[ $(cat "$IMAGE_CHECK_CALLS") == "$expected" ]] || exit 1
 done
@@ -107,7 +124,7 @@ status=0
 IMAGE_CHECK_FAIL=install IMAGE_CHECK_CLEANUP_STATUS=38 \
     bash "$project_dir/.github/workflowes/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1 || status=$?
 [[ "$status" == 37 ]]
-[[ $(cat "$IMAGE_CHECK_CALLS") == $'smoke\nroot-smoke\ncreate\ninstall\ncleanup' ]]
+[[ $(cat "$IMAGE_CHECK_CALLS") == $'resolve\nsmoke\nroot-smoke\ncreate\ninstall\ncleanup' ]] || exit 1
 
 IMAGE_CHECK_FAIL=''
 export EXPECTED_PLATFORM
@@ -115,7 +132,7 @@ for IMAGE_CHECK_PLATFORM in linux/amd64 linux/arm64; do
     EXPECTED_PLATFORM=$IMAGE_CHECK_PLATFORM
     : > "$IMAGE_CHECK_CALLS"
     bash "$project_dir/.github/workflowes/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1
-    [[ $(cat "$IMAGE_CHECK_CALLS") == $'inspect\nsmoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ninstall-java26\ncached\ncached-java17\ncached-java25\ncached-java26\ncleanup' ]] || exit 1
+    [[ $(cat "$IMAGE_CHECK_CALLS") == $'resolve\ninspect\nsmoke\nroot-smoke\ncreate\ninstall\ninstall-java17\ninstall-java25\ninstall-java26\ncached\ncached-java17\ncached-java25\ncached-java26\ncleanup' ]] || exit 1
 done
 
 EXPECTED_PLATFORM=linux/amd64
@@ -125,7 +142,7 @@ for IMAGE_CHECK_FAIL in '' inspect; do
     bash "$project_dir/.github/workflowes/scripts/check-image.sh" sdkman-ci:check > "$test_dir/output" 2>&1 || status=$?
     expected_status=1
     if [[ "$IMAGE_CHECK_FAIL" == inspect ]]; then expected_status=37; fi
-    [[ "$status" == "$expected_status" && $(cat "$IMAGE_CHECK_CALLS") == inspect ]]
+    [[ "$status" == "$expected_status" && $(cat "$IMAGE_CHECK_CALLS") == $'resolve\ninspect' ]] || exit 1
 done
 
 : > "$IMAGE_CHECK_CALLS"
