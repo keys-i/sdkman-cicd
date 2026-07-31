@@ -73,24 +73,29 @@ jobs:
           build-args: BUILDKIT_DOCKERFILE_CHECK=error=true
 
       - name: Check image and candidate cache
+        id: check
         timeout-minutes: 10
         env:
           EXPECTED_PLATFORM: linux/amd64
-        run: bash .github/workflowes/scripts/check-image.sh "$TEST_IMAGE"
+        run: |
+          image_id=$(docker image inspect --format '{{.Id}}' "$TEST_IMAGE")
+          bash .github/workflowes/scripts/check-image.sh "$image_id"
+          printf 'image-id=%s\n' "$image_id" >> "$GITHUB_OUTPUT"
 
       - name: Export the tested image
         id: export
+        env:
+          TESTED_IMAGE_ID: ${{ steps.check.outputs.image-id }}
         run: |
-          image_id=$(docker image inspect --format '{{.Id}}' "$TEST_IMAGE")
-          docker image save --output "$RUNNER_TEMP/release-image.tar" "$TEST_IMAGE"
+          docker image save --output "$RUNNER_TEMP/release-image.tar" "$TESTED_IMAGE_ID"
           archive_sha256=$(sha256sum "$RUNNER_TEMP/release-image.tar")
           printf '%s\n' \
             "archive-sha256=${archive_sha256%% *}" \
-            "image-id=$image_id" \
+            "image-id=$TESTED_IMAGE_ID" \
             "artifact-name=release-image-$GITHUB_RUN_ATTEMPT" \
             "publish-image=$PUBLISH_IMAGE" >> "$GITHUB_OUTPUT"
           printf '### Tested release image\n\nDestination:\n\n    %s\n\nImage ID:\n\n    %s\n\nArchive SHA-256:\n\n    %s\n' \
-            "$PUBLISH_IMAGE" "$image_id" "${archive_sha256%% *}" >> "$GITHUB_STEP_SUMMARY"
+            "$PUBLISH_IMAGE" "$TESTED_IMAGE_ID" "${archive_sha256%% *}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Scan the tested image
         id: scan

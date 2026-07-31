@@ -70,17 +70,23 @@ jobs:
           cache-to: type=gha,version=2,scope=sdkman-ci-pr-${{ env.IMAGE_ARCH }},mode=max
 
       - name: Check image and candidate cache
+        id: check
         timeout-minutes: 10
         env:
           EXPECTED_PLATFORM: linux/${{ env.IMAGE_ARCH }}
-        run: bash .github/workflowes/scripts/check-image.sh sdkman-ci:test
+        run: |
+          image_id=$(docker image inspect --format '{{.Id}}' sdkman-ci:test)
+          bash .github/workflowes/scripts/check-image.sh "$image_id"
+          printf 'image-id=%s\n' "$image_id" >> "$GITHUB_OUTPUT"
 
       - name: Scan the tested image
         id: scan
         timeout-minutes: 10
         shell: bash
+        env:
+          TESTED_IMAGE_ID: ${{ steps.check.outputs.image-id }}
         run: |
-          docker image save --output "$RUNNER_TEMP/test-image.tar" sdkman-ci:test
+          docker image save --output "$RUNNER_TEMP/test-image.tar" "$TESTED_IMAGE_ID"
           bash .github/workflowes/scripts/scan-image.sh "$RUNNER_TEMP/test-image.tar" 2>&1 | tee "$RUNNER_TEMP/scan-report.txt"
 
       - name: Upload the scan report
