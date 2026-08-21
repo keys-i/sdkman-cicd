@@ -67,7 +67,7 @@ jobs:
           no-cache: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.no_cache) }}
           build-args: BUILDKIT_DOCKERFILE_CHECK=error=true
           cache-from: type=gha,version=2,scope=sdkman-ci-pr-${{ env.IMAGE_ARCH }}
-          cache-to: type=gha,version=2,scope=sdkman-ci-pr-${{ env.IMAGE_ARCH }},mode=max
+          cache-to: type=gha,version=2,scope=sdkman-ci-pr-${{ env.IMAGE_ARCH }},mode=max,ignore-error=true
 
       - name: Check image and candidate cache
         id: check
