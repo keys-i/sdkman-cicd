@@ -14,12 +14,12 @@ docker build --tag sdkman-ci:local .
 Create `.sdkmanrc` in your application's root:
 
 ```ini
-java=21.0.4-tem
-kotlin=2.0.20
+java=25.0.4-tem
+kotlin=2.4.10
 ```
 
-These are 2024 examples; choose exact versions with `sdk list java` and
-`sdk list kotlin`. Kotlin is optional.
+Choose available versions with `sdk list java` and `sdk list kotlin`.
+Kotlin is optional.
 
 Run from the application's root, replacing `./gradlew test` as needed:
 
@@ -27,7 +27,7 @@ Run from the application's root, replacing `./gradlew test` as needed:
 docker run --rm \
   --mount "type=bind,src=$PWD,dst=/workspace" \
   --env SDKMAN_CANDIDATES_DIR=/workspace/.cache/sdkman/candidates \
-  sdkman-ci:local bash -c 'sdk env install && bash -c "sdk env && ./gradlew test"'
+  sdkman-ci:local bash -c '(sdk env || sdk env install) && bash -c "sdk env && ./gradlew test"'
 ```
 
 Use **Bash** without `set -u` when calling SDKMAN. It loads automatically;
