@@ -14,7 +14,7 @@ docker build --tag sdkman-ci:local .
 Create `.sdkmanrc` in your application's root:
 
 ```ini
-java=25.0.4-tem
+java=25.0.4.1-tem
 kotlin=2.4.10
 ```
 
