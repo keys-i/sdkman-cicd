@@ -15,7 +15,7 @@ Create `.sdkmanrc` in your application's root:
 
 ```ini
 java=25.0.4.1-tem
-kotlin=2.4.10
+kotlin=2.4.20
 ```
 
 Choose available versions with `sdk list java` and `sdk list kotlin`.
@@ -75,7 +75,7 @@ bash .github/workflowes/scripts/lint-workflows.sh
 bash .github/workflowes/scripts/check-image.sh sdkman-ci:local
 ```
 
-Image checks cover root/default users, Java 17/21/25/26, Kotlin 2.0.20/2.4.10,
+Image checks cover root/default users, Java 17/21/25/26, Kotlin 2.0.20/2.4.20,
 compilation, and offline cache reuse at a different path.
 [PRs, merge queues](.github/workflows/pr.yml), and releases run the same checks
 plus vulnerability scanning. Require `Build and test (amd64)` in branch rules.
