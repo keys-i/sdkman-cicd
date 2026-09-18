@@ -49,6 +49,13 @@ jobs:
       - name: Run offline checks
         run: bash .github/workflowes/scripts/check.sh
 
+      - name: Test the Marketplace action
+        uses: ./
+        with:
+          working-directory: tests
+          cache: 'false'
+          run: bash integration.sh cached
+
       - name: Lint GitHub workflows
         run: bash .github/workflowes/scripts/lint-workflows.sh
 

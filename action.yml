@@ -1,0 +1,52 @@
+name: SDKMAN CI by keys-i
+author: keys-i
+description: Cache and run repository-defined Java, Kotlin and other SDKs from .sdkmanrc on Linux
+branding:
+  icon: terminal
+  color: orange
+inputs:
+  run:
+    description: Bash commands to run after installing and selecting the SDKs in .sdkmanrc
+    required: true
+  working-directory:
+    description: Application directory relative to the checkout, containing .sdkmanrc
+    default: '.'
+  cache:
+    description: Cache installed candidates between successful runs
+    default: 'true'
+runs:
+  using: composite
+  steps:
+    - name: Validate the application
+      id: prepare
+      shell: bash
+      env:
+        BASH_ENV: /dev/null
+        SDKMAN_RUN: ${{ inputs.run }}
+        SDKMAN_WORKING_DIRECTORY: ${{ inputs.working-directory }}
+        SDKMAN_CACHE: ${{ inputs.cache }}
+      run: bash "$GITHUB_ACTION_PATH/.github/workflowes/scripts/prepare-action.sh"
+
+    - name: Install SDKMAN CLI
+      shell: bash
+      env:
+        BASH_ENV: /dev/null
+        SDKMAN_DIR: ${{ steps.prepare.outputs.sdkman-dir }}
+      run: bash "$GITHUB_ACTION_PATH/docker/install-sdkman.sh"
+
+    - name: Cache SDK candidates
+      if: inputs.cache == 'true'
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.prepare.outputs.candidates-dir }}
+        key: sdkman-action-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.prepare.outputs.os-hash }}-${{ github.event_name }}-${{ steps.prepare.outputs.rc-hash }}
+
+    - name: Run the build
+      shell: bash
+      working-directory: ${{ steps.prepare.outputs.working-directory }}
+      env:
+        BASH_ENV: /dev/null
+        SDKMAN_DIR: ${{ steps.prepare.outputs.sdkman-dir }}
+        SDKMAN_CANDIDATES_DIR: ${{ steps.prepare.outputs.candidates-dir }}
+        SDKMAN_RUN: ${{ inputs.run }}
+      run: bash "$GITHUB_ACTION_PATH/.github/workflowes/scripts/run-action.sh"

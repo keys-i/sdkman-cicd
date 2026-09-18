@@ -1,0 +1,37 @@
+pipeline {
+    agent {
+        docker {
+            image "${params.SDKMAN_IMAGE}"
+            label 'docker-amd64'
+            args '--user 0:0'
+            alwaysPull true
+        }
+    }
+    parameters {
+        string(name: 'SDKMAN_IMAGE', defaultValue: 'ghcr.io/keys-i/sdkman-cicd:v1.2.3',
+               description: 'Published SDKMAN image tag or digest')
+    }
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+        disableConcurrentBuilds()
+    }
+    stages {
+        stage('Build and test') {
+            steps {
+                sh '''#!/bin/bash
+set -e -o pipefail
+test -s .sdkmanrc
+cache_key=$( { printf '%s\\n' "$SDKMAN_IMAGE"; uname -m; cat .sdkmanrc; } | sha256sum)
+export SDKMAN_CANDIDATES_DIR="$WORKSPACE/.cache/sdkman/${cache_key%% *}/candidates"
+sdk env || sdk env install
+bash -e -o pipefail -c 'sdk env && ./gradlew test'
+'''
+            }
+        }
+    }
+    post {
+        always {
+            junit testResults: '**/build/test-results/test/*.xml', allowEmptyResults: true
+        }
+    }
+}

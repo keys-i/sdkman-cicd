@@ -13,37 +13,19 @@ RUN apt-get -o Acquire::Retries=3 --error-on=any update \
         zip \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 1000 --shell /bin/bash sdkman \
-    && install -d -o sdkman -g sdkman /opt/sdkman /workspace \
+    && install -d -o sdkman -g sdkman /opt /workspace \
     && printf '\nsource "$SDKMAN_DIR/bin/sdkman-init.sh"\n' >> /etc/bash.bashrc
 
 ENV SDKMAN_DIR=/opt/sdkman \
     LANG=C.UTF-8
 
-COPY --chown=sdkman:sdkman docker/configure-sdkman.sh /tmp/configure-sdkman.sh
+COPY --chown=sdkman:sdkman docker/install-sdkman.sh docker/configure-sdkman.sh /tmp/
 
 USER sdkman
 WORKDIR /workspace
 
-# Apply the download policy to the installer and its child curl processes
-RUN sdkman_curl_home=$(mktemp -d) \
-    && printf '%s\n' \
-        'fail' \
-        'show-error' \
-        'proto = "=https"' \
-        'proto-redir = "=https"' \
-        'connect-timeout = 10' \
-        'max-time = 120' \
-        'retry = 3' \
-        'retry-max-time = 180' > "$sdkman_curl_home/.curlrc" \
-    && CURL_HOME="$sdkman_curl_home" curl --silent --location \
-        'https://get.sdkman.io?ci=true&rcupdate=false' \
-        --output /tmp/install-sdkman.sh \
-    && CURL_HOME="$sdkman_curl_home" bash /tmp/install-sdkman.sh \
-    && bash /tmp/configure-sdkman.sh \
-    && rm /tmp/install-sdkman.sh /tmp/configure-sdkman.sh "$sdkman_curl_home/.curlrc" \
-    && rmdir "$sdkman_curl_home" \
-    && source "$SDKMAN_DIR/bin/sdkman-init.sh" \
-    && sdk version
+RUN bash /tmp/install-sdkman.sh \
+    && rm /tmp/install-sdkman.sh /tmp/configure-sdkman.sh
 
 ENV BASH_ENV=/opt/sdkman/bin/sdkman-init.sh
 

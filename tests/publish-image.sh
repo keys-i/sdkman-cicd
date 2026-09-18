@@ -5,7 +5,7 @@ project_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 test_dir=$(mktemp -d)
 trap 'rm -rf -- "$test_dir"' EXIT
 export BASH_ENV=/dev/null
-export PUBLISH_IMAGE=docker.io/example/sdkman-ci:v1.2.3
+export PUBLISH_IMAGE=ghcr.io/example/sdkman-ci:v1.2.3
 export GITHUB_STEP_SUMMARY="$test_dir/summary"
 export PUBLISH_METADATA="$test_dir/published-image.json"
 export PUSH_CALLS="$test_dir/push-calls"
@@ -14,7 +14,7 @@ printf -v digest 'sha256:%064d' 0
 printf -v EXPECTED_IMAGE_ID 'sha256:%064d' 1
 export EXPECTED_IMAGE_ID
 export ACTUAL_IMAGE_ID="$EXPECTED_IMAGE_ID" INSPECT_STATUS=0
-export EXPECTED_PUBLISHED_REF="docker.io/example/sdkman-ci@$digest"
+export EXPECTED_PUBLISHED_REF="ghcr.io/example/sdkman-ci@$digest"
 export PULLED_IMAGE_ID="$EXPECTED_IMAGE_ID" PULL_STATUS=0 VERIFY_STATUS=0
 digest_line="v1.2.3: digest: $digest size: 1234"
 
@@ -46,13 +46,13 @@ docker() {
 }
 export -f docker
 
-PUSH_OUTPUT=$(printf 'The push refers to repository [docker.io/example/sdkman-ci]\nlayer: Pushed\n%s\n' "$digest_line")
+PUSH_OUTPUT=$(printf 'The push refers to repository [ghcr.io/example/sdkman-ci]\nlayer: Pushed\n%s\n' "$digest_line")
 printf 'Earlier step summary\n' > "$GITHUB_STEP_SUMMARY"
 bash "$project_dir/.github/workflowes/scripts/publish-image.sh" > "$test_dir/output"
 grep -Fxq "$digest_line" "$test_dir/output"
 grep -Fxq 'Earlier step summary' "$GITHUB_STEP_SUMMARY"
 grep -Fxq "    $PUBLISH_IMAGE" "$GITHUB_STEP_SUMMARY"
-grep -Fxq "    docker.io/example/sdkman-ci@$digest" "$GITHUB_STEP_SUMMARY"
+grep -Fxq "    ghcr.io/example/sdkman-ci@$digest" "$GITHUB_STEP_SUMMARY"
 [[ $(cat "$PUSH_CALLS") == $'inspect\npush\npull\nverify' ]] || exit 1
 successful_summary=$(cat "$GITHUB_STEP_SUMMARY")
 jq --exit-status --arg tag "$PUBLISH_IMAGE" --arg image "$EXPECTED_PUBLISHED_REF" \
@@ -83,9 +83,10 @@ INSPECT_STATUS=37 bash "$project_dir/.github/workflowes/scripts/publish-image.sh
 [[ $(cat "$GITHUB_STEP_SUMMARY") == "$successful_summary" ]]
 
 : > "$PUSH_CALLS"
-for image in sdkman-ci docker.io/example/sdkman-ci registry.example:5000/sdkman-ci \
-    docker.io/example/sdkman-ci: docker.io/example/sdkman-ci:bad/tag \
-    "docker.io/example/sdkman-ci@$digest"; do
+for image in sdkman-ci ghcr.io/example/sdkman-ci registry.example:5000/sdkman-ci \
+    docker.io/example/sdkman-ci:v1.2.3 \
+    ghcr.io/example/sdkman-ci: ghcr.io/example/sdkman-ci:bad/tag \
+    "ghcr.io/example/sdkman-ci@$digest"; do
     if PUBLISH_IMAGE="$image" bash "$project_dir/.github/workflowes/scripts/publish-image.sh" > "$test_dir/output" 2>&1; then
         printf 'ERROR: accepted an image without a valid explicit tag\n' >&2
         exit 1

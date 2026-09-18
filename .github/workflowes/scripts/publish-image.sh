@@ -6,8 +6,8 @@ export LC_ALL=C
 : "${EXPECTED_IMAGE_ID:?EXPECTED_IMAGE_ID must identify the tested release image}"
 : "${GITHUB_STEP_SUMMARY:?GITHUB_STEP_SUMMARY must name the job summary file}"
 : "${PUBLISH_METADATA:?PUBLISH_METADATA must name the publication metadata file}"
-if [[ "$PUBLISH_IMAGE" != *:* || "$PUBLISH_IMAGE" == *@* ]]; then
-    printf 'PUBLISH_IMAGE must include an explicit image tag and no digest\n' >&2
+if [[ "$PUBLISH_IMAGE" != ghcr.io/*:* || "$PUBLISH_IMAGE" == *@* ]]; then
+    printf 'PUBLISH_IMAGE must use ghcr.io with an explicit image tag and no digest\n' >&2
     exit 1
 fi
 bash "$(dirname -- "${BASH_SOURCE[0]}")/validate-release-tag.sh" "${PUBLISH_IMAGE##*:}"

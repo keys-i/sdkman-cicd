@@ -2,3 +2,4 @@
 !Dockerfile
 !docker/
 !docker/configure-sdkman.sh
+!docker/install-sdkman.sh

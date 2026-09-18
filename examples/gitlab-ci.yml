@@ -4,7 +4,7 @@ sdkman-test:
     - saas-linux-small-amd64
   image:
     # Replace this example with your published image's digest reference
-    name: docker.io/your-org/sdkman-ci:v1.2.3
+    name: ghcr.io/keys-i/sdkman-cicd:v1.2.3
     docker:
       # Allow writes to the runner's checkout and cache directories
       user: "0"
