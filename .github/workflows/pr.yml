@@ -98,7 +98,7 @@ jobs:
 
       - name: Upload the scan report
         if: ${{ !cancelled() && (steps.scan.outcome == 'success' || steps.scan.outcome == 'failure') }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         timeout-minutes: 5
         with:
           name: scan-report-${{ matrix.architecture }}-${{ github.run_attempt }}
